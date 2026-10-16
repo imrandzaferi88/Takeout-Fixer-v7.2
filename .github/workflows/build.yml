@@ -1538,7 +1538,6 @@ jobs:
                   btnClose.setOnClickListener { dialog.dismiss() }
 
                   dialog.setContentView(view)
-                  (view.parent as? View)?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                   dialog.show()
               }
 
@@ -1926,7 +1925,7 @@ jobs:
                       statsBuilder.append("Metadati JSON abbinati: $merged\n")
                       statsBuilder.append("Foto con coordinate GPS: $gpsCount\n\n")
                       statsBuilder.append("Ripartizione per Anno:\n")
-                      yearStats.toSortedMap(compareByDescending { it }).forEach { (anno, count) ->
+                      yearStats.toList().sortedByDescending { it.first }.forEach { (anno, count) ->
                           statsBuilder.append("Anno $anno: $count file\n")
                       }
 
@@ -1975,7 +1974,7 @@ jobs:
           cache-disabled: true
 
       - name: Compila APK
-        run: gradle assembleDebug --stacktrace --no-daemon
+        run: gradle assembleDebug --no-daemon
 
       - name: Carica APK pronto
         uses: actions/upload-artifact@v4
