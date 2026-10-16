@@ -1107,8 +1107,8 @@ jobs:
               private var inputUri: Uri? = null
               private var defaultFolderUri: Uri? = null
               private var convSelectedUri: Uri? = null
-
               private var retouchBitmap: Bitmap? = null
+              private var isFiltered = false
 
               private lateinit var viewTabTakeout: View
               private lateinit var viewTabConverter: View
@@ -1410,7 +1410,6 @@ jobs:
                       imgRetouchPreview.setImageBitmap(retouchBitmap)
                   }
 
-                  var isFiltered = false
                   btnRetouchFilter.setOnClickListener {
                       if (!isFiltered) {
                           val cm = ColorMatrix().apply { setSaturation(0f) }
