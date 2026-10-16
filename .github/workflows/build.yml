@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Genera sorgenti v9.0
+      - name: Genera sorgenti completi v9.0
         run: |
           mkdir -p app/src/main/java/com/takeout/fixer
           mkdir -p app/src/main/res/layout
@@ -142,15 +142,6 @@ jobs:
                   <item name="colorOnPrimary">@color/glass_on_primary</item>
                   <item name="android:statusBarColor">@android:color/transparent</item>
                   <item name="android:navigationBarColor">@android:color/transparent</item>
-                  <item name="bottomSheetDialogTheme">@style/GlassBottomSheetDialog</item>
-              </style>
-
-              <style name="GlassBottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
-                  <item name="bottomSheetStyle">@style/GlassBottomSheetModal</item>
-              </style>
-
-              <style name="GlassBottomSheetModal" parent="Widget.Material3.BottomSheet.Modal">
-                  <item name="backgroundTint">@android:color/transparent</item>
               </style>
           </resources>
           EOF
@@ -1515,7 +1506,7 @@ jobs:
               }
 
               private fun showLiquidGlassBottomSheet() {
-                  val dialog = BottomSheetDialog(this, R.style.GlassBottomSheetDialog)
+                  val dialog = BottomSheetDialog(this)
                   val view = LayoutInflater.from(this).inflate(R.layout.layout_glass_sheet, null)
 
                   val optFolder = view.findViewById<View>(R.id.sheetOptFolder)
@@ -1547,6 +1538,7 @@ jobs:
                   btnClose.setOnClickListener { dialog.dismiss() }
 
                   dialog.setContentView(view)
+                  (view.parent as? View)?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                   dialog.show()
               }
 
