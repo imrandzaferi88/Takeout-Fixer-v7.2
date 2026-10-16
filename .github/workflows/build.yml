@@ -1,0 +1,1549 @@
+name: Build TakeoutFixer v7 Pro
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crea struttura sorgenti
+        run: |
+          mkdir -p app/src/main/java/com/takeout/fixer
+          mkdir -p app/src/main/res/layout
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/values-night
+          mkdir -p app/src/main/res/menu
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/mipmap-anydpi-v26
+
+          cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "TakeoutFixer"
+          include ':app'
+          EOF
+
+          cat << 'EOF' > build.gradle
+          plugins {
+              id 'com.android.application' version '8.2.0' apply false
+              id 'org.jetbrains.kotlin.android' version '1.9.20' apply false
+          }
+          EOF
+
+          cat << 'EOF' > gradle.properties
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          kotlin.code.style=official
+          android.nonTransitiveRClass=true
+          EOF
+
+          cat << 'EOF' > app/build.gradle
+          plugins {
+              id 'com.android.application'
+              id 'org.jetbrains.kotlin.android'
+          }
+
+          android {
+              namespace 'com.takeout.fixer'
+              compileSdk 34
+
+              defaultConfig {
+                  applicationId "com.takeout.fixer"
+                  minSdk 26
+                  targetSdk 34
+                  versionCode 7
+                  versionName "7.0"
+              }
+
+              buildTypes {
+                  release {
+                      minifyEnabled false
+                  }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = '17'
+              }
+          }
+
+          dependencies {
+              implementation 'androidx.core:core-ktx:1.12.0'
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'com.google.android.material:material:1.11.0'
+              implementation 'androidx.exifinterface:exifinterface:1.3.7'
+              implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values/colors.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="md_primary">#0B57D0</color>
+              <color name="md_on_primary">#FFFFFF</color>
+              <color name="md_primary_container">#D3E3FD</color>
+              <color name="md_on_primary_container">#041E49</color>
+              <color name="app_background">#F8F9FA</color>
+              <color name="card_background">#FFFFFF</color>
+              <color name="card_stroke">#E0E3E7</color>
+              <color name="inner_box_background">#F0F4F9</color>
+              <color name="text_primary">#1F1F1F</color>
+              <color name="text_secondary">#444746</color>
+              <color name="text_tertiary">#747775</color>
+              <color name="console_background">#1E1F20</color>
+              <color name="console_text">#7CBBF3</color>
+              <color name="accent_green">#146C2E</color>
+              <color name="accent_amber">#B06000</color>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values-night/colors.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="md_primary">#A8C7FA</color>
+              <color name="md_on_primary">#062E6F</color>
+              <color name="md_primary_container">#0842A0</color>
+              <color name="md_on_primary_container">#D3E3FD</color>
+              <color name="app_background">#111318</color>
+              <color name="card_background">#1B1F27</color>
+              <color name="card_stroke">#282E39</color>
+              <color name="inner_box_background">#242933</color>
+              <color name="text_primary">#E2E2E6</color>
+              <color name="text_secondary">#C4C7C5</color>
+              <color name="text_tertiary">#8E918F</color>
+              <color name="console_background">#0D0E11</color>
+              <color name="console_text">#A8C7FA</color>
+              <color name="accent_green">#6DD58C</color>
+              <color name="accent_amber">#FFB951</color>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values/themes.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="Theme.TakeoutFixer" parent="Theme.Material3.DayNight.NoActionBar">
+                  <item name="colorPrimary">@color/md_primary</item>
+                  <item name="colorOnPrimary">@color/md_on_primary</item>
+                  <item name="colorPrimaryContainer">@color/md_primary_container</item>
+                  <item name="colorOnPrimaryContainer">@color/md_on_primary_container</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values/strings.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Takeout Fixer</string>
+              <string name="app_version">v7.0 Pro</string>
+              <string name="app_subtitle">Organizzazione Metadati e Anno Mese</string>
+              <string name="initial_setup_title">Configurazione Iniziale</string>
+              <string name="perm_status_incomplete">Da completare</string>
+              <string name="perm_status_complete">Pronto al 100%</string>
+              <string name="setup_desc">Completa questi due passaggi per elaborare file grandi anche a schermo spento:</string>
+              <string name="step_notif_title">Notifiche in background</string>
+              <string name="step_notif_desc">Avanzamento live nella tendina</string>
+              <string name="btn_activate">Attiva</string>
+              <string name="btn_active">Attivo</string>
+              <string name="step_battery_title">Ottimizzazione batteria</string>
+              <string name="step_battery_desc">Consenti esecuzione senza restrizioni</string>
+              <string name="btn_set">Imposta</string>
+              <string name="btn_set_done">Impostato</string>
+              <string name="input_card_title">1. Archivio Takeout</string>
+              <string name="no_file_selected">Nessun file selezionato</string>
+              <string name="btn_browse_zip">Scegli ZIP Takeout</string>
+              <string name="output_card_title">2. Elaborazione e Salvataggio</string>
+              <string name="output_desc">Genera un archivio suddiviso in Anno Mese con metadati EXIF e GPS inseriti senza file JSON.</string>
+              <string name="btn_start">Salva e Avvia Elaborazione</string>
+              <string name="ready">In attesa del file...</string>
+              <string name="system_log">Console di Sistema</string>
+              <string name="init_complete">Takeout Fixer v7.0 avviato con successo.</string>
+              <string name="settings">Impostazioni</string>
+              <string name="change_language">Lingua</string>
+              <string name="change_theme">Tema dell app</string>
+              <string name="default_folder">Cartella predefinita</string>
+              <string name="about_creator">Autore dell app</string>
+              <string name="theme_system">Segui sistema</string>
+              <string name="theme_light">Tema Giorno Chiaro</string>
+              <string name="theme_dark">Tema Notte Scuro</string>
+              <string name="close">Chiudi</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/menu/main_menu.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <menu xmlns:android="http://schemas.android.com/apk/res/android">
+              <item
+                  android:id="@+id/menu_folder"
+                  android:title="Cartella di destinazione" />
+              <item
+                  android:id="@+id/menu_theme"
+                  android:title="Tema (Giorno / Notte)" />
+              <item
+                  android:id="@+id/menu_language"
+                  android:title="Lingua (Italiano / English)" />
+              <item
+                  android:id="@+id/menu_creator"
+                  android:title="Autore dell app" />
+          </menu>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/ic_launcher_foreground.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path
+                  android:fillColor="#0B57D0"
+                  android:pathData="M24,24h60c6.6,0 12,5.4 12,12v36c0,6.6 -5.4,12 -12,12H24c-6.6,0 -12,-5.4 -12,-12V36c0,-6.6 5.4,-12 12,-12z"/>
+              <path
+                  android:fillColor="#FFFFFF"
+                  android:pathData="M34,36h40c3.3,0 6,2.7 6,6v24c0,3.3 -2.7,6 -6,6H34c-3.3,0 -6,-2.7 -6,-6V42c0,-3.3 2.7,-6 6,-6z"/>
+              <path
+                  android:fillColor="#FBBC04"
+                  android:pathData="M44,48m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"/>
+              <path
+                  android:fillColor="#34A853"
+                  android:pathData="M36,66l11,-15 9,12 8,-9 14,12z"/>
+              <path
+                  android:fillColor="#4285F4"
+                  android:pathData="M64,30l6,6h-5c0,7.7 -6.3,14 -14,14 -2.5,0 -4.8,-0.7 -6.8,-1.8l2.4,-2.4c1.3,0.5 2.8,0.8 4.4,0.8 5.9,0 10.7,-4.8 10.7,-10.6h-4.7l7,-6z"/>
+          </vector>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/md_primary"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/ic_more_vert.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#888888"
+                  android:pathData="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z"/>
+          </vector>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/ic_folder_zip.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#0B57D0"
+                  android:pathData="M20,6h-8l-2,-2H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8C22,6.9 21.1,6 20,6zM18,12h-2v2h2v2h-2v2h-2v-2h2v-2h-2v-2h2v-2h-2V8h2V12z"/>
+          </vector>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/ic_check_circle.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#146C2E"
+                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.59L19,8l-9,9z"/>
+          </vector>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/ic_security.xml
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="24dp"
+              android:height="24dp"
+              android:viewportWidth="24"
+              android:viewportHeight="24">
+              <path
+                  android:fillColor="#0B57D0"
+                  android:pathData="M12,1L3,5v6c0,5.55 3.84,10.74 9,12 5.16,-1.26 9,-6.45 9,-12V5l-9,-4zm0,10.99h7c-.53,4.12 -3.28,7.79 -7,8.94V12H5V6.3l7,-3.11v8.8z"/>
+          </vector>
+          EOF
+
+          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+              <uses-permission android:name="android.permission.WAKE_LOCK" />
+              <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+              <application
+                  android:allowBackup="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher"
+                  android:label="@string/app_name"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.TakeoutFixer">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:screenOrientation="portrait"
+                      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+
+                  <service
+                      android:name=".FixerService"
+                      android:foregroundServiceType="dataSync"
+                      android:exported="false" />
+              </application>
+          </manifest>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <androidx.coordinatorlayout.widget.CoordinatorLayout
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/app_background">
+
+              <androidx.core.widget.NestedScrollView
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:fillViewport="true">
+
+                  <LinearLayout
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:orientation="vertical"
+                      android:padding="20dp">
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="horizontal"
+                          android:gravity="center_vertical"
+                          android:layout_marginBottom="18dp">
+
+                          <ImageView
+                              android:layout_width="44dp"
+                              android:layout_height="44dp"
+                              android:src="@drawable/ic_folder_zip"
+                              android:layout_marginEnd="14dp"/>
+
+                          <LinearLayout
+                              android:layout_width="0dp"
+                              android:layout_height="wrap_content"
+                              android:layout_weight="1"
+                              android:orientation="vertical">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/app_name"
+                                  android:textSize="24sp"
+                                  android:textStyle="bold"
+                                  android:textColor="@color/text_primary"/>
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/app_subtitle"
+                                  android:textSize="12sp"
+                                  android:textColor="@color/text_secondary"/>
+                          </LinearLayout>
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="@string/app_version"
+                              android:textStyle="bold"
+                              android:textSize="11sp"
+                              android:textColor="@color/md_on_primary_container"
+                              android:background="@color/md_primary_container"
+                              android:paddingHorizontal="8dp"
+                              android:paddingVertical="4dp"
+                              android:layout_marginEnd="6dp"
+                              android:clipToOutline="true"/>
+
+                          <com.google.android.material.button.MaterialButton
+                              android:id="@+id/btnMenu"
+                              style="@style/Widget.Material3.Button.IconButton"
+                              android:layout_width="44dp"
+                              android:layout_height="44dp"
+                              app:icon="@drawable/ic_more_vert"
+                              app:iconTint="@color/text_primary"/>
+                      </LinearLayout>
+
+                      <com.google.android.material.card.MaterialCardView
+                          android:id="@+id/cardPermissions"
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          app:cardCornerRadius="22dp"
+                          app:cardElevation="0dp"
+                          app:strokeWidth="1.5dp"
+                          app:strokeColor="@color/md_primary"
+                          app:cardBackgroundColor="@color/card_background"
+                          android:layout_marginBottom="16dp">
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:padding="18dp">
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="horizontal"
+                                  android:gravity="center_vertical"
+                                  android:layout_marginBottom="10dp">
+
+                                  <ImageView
+                                      android:layout_width="22dp"
+                                      android:layout_height="22dp"
+                                      android:src="@drawable/ic_security"
+                                      android:layout_marginEnd="8dp"/>
+
+                                  <TextView
+                                      android:layout_width="0dp"
+                                      android:layout_height="wrap_content"
+                                      android:layout_weight="1"
+                                      android:text="@string/initial_setup_title"
+                                      android:textStyle="bold"
+                                      android:textSize="15sp"
+                                      android:textColor="@color/text_primary"/>
+
+                                  <TextView
+                                      android:id="@+id/tvPermStatus"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:text="@string/perm_status_incomplete"
+                                      android:textStyle="bold"
+                                      android:textSize="11sp"
+                                      android:textColor="@color/accent_amber"/>
+                              </LinearLayout>
+
+                              <TextView
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/setup_desc"
+                                  android:textSize="12sp"
+                                  android:textColor="@color/text_secondary"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="horizontal"
+                                  android:gravity="center_vertical"
+                                  android:background="@color/inner_box_background"
+                                  android:padding="12dp"
+                                  android:layout_marginBottom="8dp"
+                                  android:clipToOutline="true">
+
+                                  <TextView
+                                      android:id="@+id/iconStepNotif"
+                                      android:layout_width="24dp"
+                                      android:layout_height="24dp"
+                                      android:gravity="center"
+                                      android:text="1"
+                                      android:textStyle="bold"
+                                      android:textColor="@color/md_primary"
+                                      android:layout_marginEnd="10dp"/>
+
+                                  <LinearLayout
+                                      android:layout_width="0dp"
+                                      android:layout_height="wrap_content"
+                                      android:layout_weight="1"
+                                      android:orientation="vertical">
+
+                                      <TextView
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:text="@string/step_notif_title"
+                                          android:textStyle="bold"
+                                          android:textSize="13sp"
+                                          android:textColor="@color/text_primary"/>
+
+                                      <TextView
+                                          android:id="@+id/tvNotifSub"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:text="@string/step_notif_desc"
+                                          android:textSize="11sp"
+                                          android:textColor="@color/text_tertiary"/>
+                                  </LinearLayout>
+
+                                  <com.google.android.material.button.MaterialButton
+                                      android:id="@+id/btnGrantNotif"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="38dp"
+                                      android:text="@string/btn_activate"
+                                      android:textSize="12sp"
+                                      app:cornerRadius="12dp"
+                                      style="@style/Widget.Material3.Button.TonalButton"/>
+                              </LinearLayout>
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="horizontal"
+                                  android:gravity="center_vertical"
+                                  android:background="@color/inner_box_background"
+                                  android:padding="12dp"
+                                  android:clipToOutline="true">
+
+                                  <TextView
+                                      android:id="@+id/iconStepBattery"
+                                      android:layout_width="24dp"
+                                      android:layout_height="24dp"
+                                      android:gravity="center"
+                                      android:text="2"
+                                      android:textStyle="bold"
+                                      android:textColor="@color/md_primary"
+                                      android:layout_marginEnd="10dp"/>
+
+                                  <LinearLayout
+                                      android:layout_width="0dp"
+                                      android:layout_height="wrap_content"
+                                      android:layout_weight="1"
+                                      android:orientation="vertical">
+
+                                      <TextView
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:text="@string/step_battery_title"
+                                          android:textStyle="bold"
+                                          android:textSize="13sp"
+                                          android:textColor="@color/text_primary"/>
+
+                                      <TextView
+                                          android:id="@+id/tvBatterySub"
+                                          android:layout_width="wrap_content"
+                                          android:layout_height="wrap_content"
+                                          android:text="@string/step_battery_desc"
+                                          android:textSize="11sp"
+                                          android:textColor="@color/text_tertiary"/>
+                                  </LinearLayout>
+
+                                  <com.google.android.material.button.MaterialButton
+                                      android:id="@+id/btnGrantBattery"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="38dp"
+                                      android:text="@string/btn_set"
+                                      android:textSize="12sp"
+                                      app:cornerRadius="12dp"
+                                      style="@style/Widget.Material3.Button.TonalButton"/>
+                              </LinearLayout>
+                          </LinearLayout>
+                      </com.google.android.material.card.MaterialCardView>
+
+                      <com.google.android.material.card.MaterialCardView
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          app:cardCornerRadius="22dp"
+                          app:cardElevation="0dp"
+                          app:strokeWidth="1dp"
+                          app:strokeColor="@color/card_stroke"
+                          app:cardBackgroundColor="@color/card_background"
+                          android:layout_marginBottom="14dp">
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:padding="20dp">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/input_card_title"
+                                  android:textStyle="bold"
+                                  android:textSize="15sp"
+                                  android:textColor="@color/text_primary"
+                                  android:layout_marginBottom="4dp"/>
+
+                              <TextView
+                                  android:id="@+id/tvInputPath"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/no_file_selected"
+                                  android:textSize="12sp"
+                                  android:textColor="@color/text_secondary"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnSelectInput"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="52dp"
+                                  android:text="@string/btn_browse_zip"
+                                  app:cornerRadius="16dp"
+                                  app:icon="@drawable/ic_folder_zip"
+                                  style="@style/Widget.Material3.Button.TonalButton"/>
+                          </LinearLayout>
+                      </com.google.android.material.card.MaterialCardView>
+
+                      <com.google.android.material.card.MaterialCardView
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          app:cardCornerRadius="22dp"
+                          app:cardElevation="0dp"
+                          app:strokeWidth="1dp"
+                          app:strokeColor="@color/card_stroke"
+                          app:cardBackgroundColor="@color/card_background"
+                          android:layout_marginBottom="16dp">
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:padding="20dp">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/output_card_title"
+                                  android:textStyle="bold"
+                                  android:textSize="15sp"
+                                  android:textColor="@color/text_primary"
+                                  android:layout_marginBottom="4dp"/>
+
+                              <TextView
+                                  android:id="@+id/tvCustomFolderStatus"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/output_desc"
+                                  android:textSize="12sp"
+                                  android:textColor="@color/text_secondary"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnStart"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="56dp"
+                                  android:text="@string/btn_start"
+                                  android:enabled="false"
+                                  app:cornerRadius="16dp"
+                                  style="@style/Widget.Material3.Button"/>
+                          </LinearLayout>
+                      </com.google.android.material.card.MaterialCardView>
+
+                      <com.google.android.material.card.MaterialCardView
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          app:cardCornerRadius="22dp"
+                          app:cardElevation="0dp"
+                          app:cardBackgroundColor="@color/inner_box_background"
+                          android:layout_marginBottom="14dp">
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:padding="18dp">
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="horizontal"
+                                  android:gravity="center_vertical"
+                                  android:layout_marginBottom="10dp">
+
+                                  <com.google.android.material.progressindicator.CircularProgressIndicator
+                                      android:id="@+id/indicatorPulse"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:indeterminate="true"
+                                      app:indicatorSize="28dp"
+                                      app:trackThickness="3dp"
+                                      app:indicatorColor="@color/md_primary"
+                                      android:layout_marginEnd="10dp"
+                                      android:visibility="invisible"/>
+
+                                  <TextView
+                                      android:id="@+id/tvStatus"
+                                      android:layout_width="0dp"
+                                      android:layout_height="wrap_content"
+                                      android:layout_weight="1"
+                                      android:text="@string/ready"
+                                      android:textStyle="bold"
+                                      android:textSize="13sp"
+                                      android:textColor="@color/text_primary"/>
+
+                                  <TextView
+                                      android:id="@+id/tvPercent"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:text="0%"
+                                      android:textStyle="bold"
+                                      android:textSize="15sp"
+                                      android:textColor="@color/md_primary"/>
+                              </LinearLayout>
+
+                              <com.google.android.material.progressindicator.LinearProgressIndicator
+                                  android:id="@+id/progressBar"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:max="100"
+                                  android:progress="0"
+                                  app:trackCornerRadius="6dp"
+                                  app:trackThickness="8dp"
+                                  app:trackColor="@color/card_stroke"
+                                  app:indicatorColor="@color/md_primary"/>
+                          </LinearLayout>
+                      </com.google.android.material.card.MaterialCardView>
+
+                      <TextView
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="@string/system_log"
+                          android:textStyle="bold"
+                          android:textSize="12sp"
+                          android:textColor="@color/text_tertiary"
+                          android:layout_marginBottom="6dp"/>
+
+                      <com.google.android.material.card.MaterialCardView
+                          android:layout_width="match_parent"
+                          android:layout_height="125dp"
+                          app:cardCornerRadius="18dp"
+                          app:cardElevation="0dp"
+                          app:cardBackgroundColor="@color/console_background">
+
+                          <ScrollView
+                              android:id="@+id/scrollLog"
+                              android:layout_width="match_parent"
+                              android:layout_height="match_parent"
+                              android:padding="12dp">
+
+                              <TextView
+                                  android:id="@+id/tvLog"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:textColor="@color/console_text"
+                                  android:fontFamily="monospace"
+                                  android:textSize="11sp"
+                                  android:text="@string/init_complete"/>
+                          </ScrollView>
+                      </com.google.android.material.card.MaterialCardView>
+                  </LinearLayout>
+              </androidx.core.widget.NestedScrollView>
+          </androidx.coordinatorlayout.widget.CoordinatorLayout>
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/takeout/fixer/MainActivity.kt
+          package com.takeout.fixer
+
+          import android.Manifest
+          import android.animation.Animator
+          import android.animation.AnimatorListenerAdapter
+          import android.animation.ObjectAnimator
+          import android.annotation.SuppressLint
+          import android.content.BroadcastReceiver
+          import android.content.Context
+          import android.content.Intent
+          import android.content.IntentFilter
+          import android.content.SharedPreferences
+          import android.content.pm.PackageManager
+          import android.net.Uri
+          import android.os.Build
+          import android.os.Bundle
+          import android.os.PowerManager
+          import android.provider.DocumentsContract
+          import android.provider.Settings
+          import android.view.View
+          import android.view.animation.AccelerateDecelerateInterpolator
+          import android.view.animation.DecelerateInterpolator
+          import android.widget.ScrollView
+          import android.widget.TextView
+          import androidx.activity.result.contract.ActivityResultContracts
+          import androidx.appcompat.app.AppCompatActivity
+          import androidx.appcompat.app.AppCompatDelegate
+          import androidx.appcompat.widget.PopupMenu
+          import androidx.core.content.ContextCompat
+          import androidx.core.os.LocaleListCompat
+          import com.google.android.material.button.MaterialButton
+          import com.google.android.material.card.MaterialCardView
+          import com.google.android.material.dialog.MaterialAlertDialogBuilder
+          import com.google.android.material.progressindicator.CircularProgressIndicator
+          import com.google.android.material.progressindicator.LinearProgressIndicator
+
+          class MainActivity : AppCompatActivity() {
+
+              private var inputUri: Uri? = null
+              private var defaultFolderUri: Uri? = null
+
+              private lateinit var cardPermissions: MaterialCardView
+              private lateinit var tvPermStatus: TextView
+              private lateinit var btnGrantNotif: MaterialButton
+              private lateinit var btnGrantBattery: MaterialButton
+              private lateinit var iconStepNotif: TextView
+              private lateinit var iconStepBattery: TextView
+
+              private lateinit var btnMenu: MaterialButton
+              private lateinit var btnSelectInput: MaterialButton
+              private lateinit var btnStart: MaterialButton
+              private lateinit var tvInputPath: TextView
+              private lateinit var tvStatus: TextView
+              private lateinit var tvPercent: TextView
+              private lateinit var tvLog: TextView
+              private lateinit var tvCustomFolderStatus: TextView
+              private lateinit var progressBar: LinearProgressIndicator
+              private lateinit var indicatorPulse: CircularProgressIndicator
+              private lateinit var scrollLog: ScrollView
+
+              private lateinit var prefs: SharedPreferences
+              private var isCardDismissed = false
+
+              private val receiver = object : BroadcastReceiver() {
+                  override fun onReceive(context: Context?, intent: Intent?) {
+                      when (intent?.action) {
+                          FixerService.ACTION_PROGRESS -> {
+                              val pct = intent.getIntExtra(FixerService.EXTRA_PROGRESS, 0)
+                              val status = intent.getStringExtra(FixerService.EXTRA_STATUS) ?: ""
+
+                              val anim = ObjectAnimator.ofInt(progressBar, "progress", progressBar.progress, pct)
+                              anim.duration = 400
+                              anim.interpolator = DecelerateInterpolator()
+                              anim.start()
+
+                              tvPercent.text = "$pct%"
+                              tvStatus.text = status
+                              indicatorPulse.visibility = if (pct in 1..99) View.VISIBLE else View.INVISIBLE
+                          }
+                          FixerService.ACTION_LOG -> {
+                              val msg = intent.getStringExtra(FixerService.EXTRA_MESSAGE) ?: ""
+                              tvLog.append("$msg\n")
+                              scrollLog.post { scrollLog.fullScroll(ScrollView.FOCUS_DOWN) }
+                          }
+                          FixerService.ACTION_COMPLETED -> {
+                              val stats = intent.getStringExtra(FixerService.EXTRA_STATS) ?: "Elaborazione completata!"
+                              btnSelectInput.isEnabled = true
+                              btnStart.isEnabled = true
+                              indicatorPulse.visibility = View.INVISIBLE
+                              progressBar.progress = 100
+                              tvPercent.text = "100%"
+                              tvStatus.text = "Completato con successo!"
+                              tvLog.append("OPERAZIONE CONCLUSA CON SUCCESSO.\n")
+
+                              MaterialAlertDialogBuilder(this@MainActivity)
+                                  .setTitle("Riepilogo Elaborazione")
+                                  .setMessage(stats)
+                                  .setIcon(R.drawable.ic_check_circle)
+                                  .setPositiveButton("Chiudi", null)
+                                  .show()
+                          }
+                          FixerService.ACTION_ERROR -> {
+                              val error = intent.getStringExtra(FixerService.EXTRA_MESSAGE) ?: "Errore imprevisto"
+                              btnSelectInput.isEnabled = true
+                              btnStart.isEnabled = true
+                              indicatorPulse.visibility = View.INVISIBLE
+                              tvStatus.text = "Errore: $error"
+                              tvLog.append("ERRORE: $error\n")
+                          }
+                      }
+                  }
+              }
+
+              private val notifPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                  checkPermissionsState()
+                  if (isGranted) {
+                      tvLog.append("Permesso notifiche concesso.\n")
+                  } else {
+                      tvLog.append("Notifiche non autorizzate: la barra in tendina non sara visibile.\n")
+                  }
+              }
+
+              private val pickInputLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                  if (uri != null) {
+                      contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                      inputUri = uri
+                      tvInputPath.text = "File selezionato: ${uri.lastPathSegment ?: uri.toString()}"
+                      btnStart.isEnabled = true
+                      tvLog.append("Archivio pronto per l elaborazione.\n")
+                  }
+              }
+
+              private val selectFolderLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+                  if (uri != null) {
+                      contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                      defaultFolderUri = uri
+                      prefs.edit().putString("default_folder_uri", uri.toString()).apply()
+                      tvCustomFolderStatus.text = "Cartella predefinita: ${uri.lastPathSegment ?: uri.toString()}"
+                      tvLog.append("Cartella predefinita impostata.\n")
+                  }
+              }
+
+              private val createOutputLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { outUri ->
+                  val inUri = inputUri
+                  if (inUri != null && outUri != null) {
+                      startFixingProcess(inUri, outUri)
+                  }
+              }
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  prefs = getSharedPreferences("takeout_fixer_prefs", Context.MODE_PRIVATE)
+                  val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                  AppCompatDelegate.setDefaultNightMode(savedTheme)
+
+                  super.onCreate(savedInstanceState)
+                  setContentView(R.layout.activity_main)
+
+                  initViews()
+                  setupListeners()
+                  loadSavedFolder()
+              }
+
+              private fun initViews() {
+                  cardPermissions = findViewById(R.id.cardPermissions)
+                  tvPermStatus = findViewById(R.id.tvPermStatus)
+                  btnGrantNotif = findViewById(R.id.btnGrantNotif)
+                  btnGrantBattery = findViewById(R.id.btnGrantBattery)
+                  iconStepNotif = findViewById(R.id.iconStepNotif)
+                  iconStepBattery = findViewById(R.id.iconStepBattery)
+
+                  btnMenu = findViewById(R.id.btnMenu)
+                  btnSelectInput = findViewById(R.id.btnSelectInput)
+                  btnStart = findViewById(R.id.btnStart)
+                  tvInputPath = findViewById(R.id.tvInputPath)
+                  tvStatus = findViewById(R.id.tvStatus)
+                  tvPercent = findViewById(R.id.tvPercent)
+                  tvLog = findViewById(R.id.tvLog)
+                  tvCustomFolderStatus = findViewById(R.id.tvCustomFolderStatus)
+                  progressBar = findViewById(R.id.progressBar)
+                  indicatorPulse = findViewById(R.id.indicatorPulse)
+                  scrollLog = findViewById(R.id.scrollLog)
+              }
+
+              private fun loadSavedFolder() {
+                  val folderStr = prefs.getString("default_folder_uri", null)
+                  if (folderStr != null) {
+                      defaultFolderUri = Uri.parse(folderStr)
+                      tvCustomFolderStatus.text = "Cartella predefinita: ${defaultFolderUri?.lastPathSegment}"
+                  }
+              }
+
+              @SuppressLint("BatteryLife")
+              private fun setupListeners() {
+                  btnMenu.setOnClickListener { view ->
+                      showOptionsMenu(view)
+                  }
+
+                  btnGrantNotif.setOnClickListener {
+                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                          notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                      }
+                  }
+
+                  btnGrantBattery.setOnClickListener {
+                      val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                      if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                          try {
+                              val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                  data = Uri.parse("package:$packageName")
+                              }
+                              startActivity(intent)
+                          } catch (e: Exception) {
+                              val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                  data = Uri.parse("package:$packageName")
+                              }
+                              startActivity(intent)
+                          }
+                      }
+                  }
+
+                  btnSelectInput.setOnClickListener {
+                      pickInputLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "*/*"))
+                  }
+
+                  btnStart.setOnClickListener {
+                      val targetDir = defaultFolderUri
+                      if (targetDir != null) {
+                          try {
+                              val targetFileUri = DocumentsContract.createDocument(
+                                  contentResolver,
+                                  targetDir,
+                                  "application/zip",
+                                  "Takeout_Ordinato_FIXED.zip"
+                              )
+                              val inUri = inputUri
+                              if (targetFileUri != null && inUri != null) {
+                                  startFixingProcess(inUri, targetFileUri)
+                                  return@setOnClickListener
+                              }
+                          } catch (e: Exception) {
+                              tvLog.append("Salvataggio automatico non riuscito: ${e.message}\n")
+                          }
+                      }
+                      createOutputLauncher.launch("Takeout_Ordinato_FIXED.zip")
+                  }
+              }
+
+              private fun startFixingProcess(inUri: Uri, outUri: Uri) {
+                  contentResolver.takePersistableUriPermission(outUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                  btnSelectInput.isEnabled = false
+                  btnStart.isEnabled = false
+                  indicatorPulse.visibility = View.VISIBLE
+                  tvLog.append("Avvio motore di elaborazione in background...\n")
+
+                  val serviceIntent = Intent(this, FixerService::class.java).apply {
+                      action = FixerService.ACTION_START
+                      putExtra(FixerService.EXTRA_INPUT_URI, inUri)
+                      putExtra(FixerService.EXTRA_OUTPUT_URI, outUri)
+                  }
+                  ContextCompat.startForegroundService(this, serviceIntent)
+              }
+
+              private fun showOptionsMenu(anchor: View) {
+                  val popup = PopupMenu(this, anchor)
+                  popup.menuInflater.inflate(R.menu.main_menu, popup.menu)
+                  popup.setOnMenuItemClickListener { item ->
+                      when (item.itemId) {
+                          R.id.menu_folder -> {
+                              selectFolderLauncher.launch(null)
+                              true
+                          }
+                          R.id.menu_theme -> {
+                              showThemeDialog()
+                              true
+                          }
+                          R.id.menu_language -> {
+                              showLanguageDialog()
+                              true
+                          }
+                          R.id.menu_creator -> {
+                              showCreatorDialog()
+                              true
+                          }
+                          else -> false
+                      }
+                  }
+                  popup.show()
+              }
+
+              private fun showThemeDialog() {
+                  val options = arrayOf(
+                      getString(R.string.theme_system),
+                      getString(R.string.theme_light),
+                      getString(R.string.theme_dark)
+                  )
+                  val currentTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                  val selectedIdx = when (currentTheme) {
+                      AppCompatDelegate.MODE_NIGHT_NO -> 1
+                      AppCompatDelegate.MODE_NIGHT_YES -> 2
+                      else -> 0
+                  }
+
+                  MaterialAlertDialogBuilder(this)
+                      .setTitle(R.string.change_theme)
+                      .setSingleChoiceItems(options, selectedIdx) { dialog, which ->
+                          val newTheme = when (which) {
+                              1 -> AppCompatDelegate.MODE_NIGHT_NO
+                              2 -> AppCompatDelegate.MODE_NIGHT_YES
+                              else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                          }
+                          prefs.edit().putInt("app_theme", newTheme).apply()
+                          AppCompatDelegate.setDefaultNightMode(newTheme)
+                          dialog.dismiss()
+                      }
+                      .setNegativeButton(R.string.close, null)
+                      .show()
+              }
+
+              private fun showLanguageDialog() {
+                  val languages = arrayOf("Italiano", "English")
+                  MaterialAlertDialogBuilder(this)
+                      .setTitle(R.string.change_language)
+                      .setItems(languages) { _, which ->
+                          val localeCode = if (which == 0) "it" else "en"
+                          AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeCode))
+                      }
+                      .setNegativeButton(R.string.close, null)
+                      .show()
+              }
+
+              private fun showCreatorDialog() {
+                  MaterialAlertDialogBuilder(this)
+                      .setTitle(R.string.about_creator)
+                      .setMessage("Questa bellissima app e stata creata con passione da Imran Dzaferi per organizzare automaticamente ogni foto e video di Google Takeout!")
+                      .setIcon(R.drawable.ic_check_circle)
+                      .setPositiveButton("Grande Imran!", null)
+                      .show()
+              }
+
+              private fun checkPermissionsState() {
+                  var notifOk = true
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      notifOk = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                  }
+
+                  val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                  val batteryOk = pm.isIgnoringBatteryOptimizations(packageName)
+
+                  if (notifOk) {
+                      btnGrantNotif.isEnabled = false
+                      btnGrantNotif.text = getString(R.string.btn_active)
+                      iconStepNotif.text = "OK"
+                      iconStepNotif.setTextColor(getColor(R.color.accent_green))
+                  } else {
+                      btnGrantNotif.isEnabled = true
+                      btnGrantNotif.text = getString(R.string.btn_activate)
+                      iconStepNotif.text = "1"
+                      iconStepNotif.setTextColor(getColor(R.color.md_primary))
+                  }
+
+                  if (batteryOk) {
+                      btnGrantBattery.isEnabled = false
+                      btnGrantBattery.text = getString(R.string.btn_set_done)
+                      iconStepBattery.text = "OK"
+                      iconStepBattery.setTextColor(getColor(R.color.accent_green))
+                  } else {
+                      btnGrantBattery.isEnabled = true
+                      btnGrantBattery.text = getString(R.string.btn_set)
+                      iconStepBattery.text = "2"
+                      iconStepBattery.setTextColor(getColor(R.color.md_primary))
+                  }
+
+                  if (notifOk && batteryOk) {
+                      tvPermStatus.text = getString(R.string.perm_status_complete)
+                      tvPermStatus.setTextColor(getColor(R.color.accent_green))
+
+                      if (!isCardDismissed && cardPermissions.visibility == View.VISIBLE) {
+                          isCardDismissed = true
+                          cardPermissions.postDelayed({
+                              cardPermissions.animate()
+                                  .alpha(0f)
+                                  .translationY(-40f)
+                                  .scaleX(0.95f)
+                                  .scaleY(0.95f)
+                                  .setDuration(450)
+                                  .setInterpolator(AccelerateDecelerateInterpolator())
+                                  .setListener(object : AnimatorListenerAdapter() {
+                                      override fun onAnimationEnd(animation: Animator) {
+                                          cardPermissions.visibility = View.GONE
+                                      }
+                                  })
+                          }, 600)
+                      }
+                  } else {
+                      tvPermStatus.text = getString(R.string.perm_status_incomplete)
+                      tvPermStatus.setTextColor(getColor(R.color.accent_amber))
+                      cardPermissions.visibility = View.VISIBLE
+                      cardPermissions.alpha = 1f
+                      cardPermissions.scaleX = 1f
+                      cardPermissions.scaleY = 1f
+                      cardPermissions.translationY = 0f
+                      isCardDismissed = false
+                  }
+              }
+
+              override fun onResume() {
+                  super.onResume()
+                  checkPermissionsState()
+              }
+
+              override fun onStart() {
+                  super.onStart()
+                  val filter = IntentFilter().apply {
+                      addAction(FixerService.ACTION_PROGRESS)
+                      addAction(FixerService.ACTION_LOG)
+                      addAction(FixerService.ACTION_COMPLETED)
+                      addAction(FixerService.ACTION_ERROR)
+                  }
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+                  } else {
+                      registerReceiver(receiver, filter)
+                  }
+              }
+
+              override fun onStop() {
+                  super.onStop()
+                  unregisterReceiver(receiver)
+              }
+          }
+          EOF
+
+          cat << 'EOF' > app/src/main/java/com/takeout/fixer/FixerService.kt
+          package com.takeout.fixer
+
+          import android.app.Notification
+          import android.app.NotificationChannel
+          import android.app.NotificationManager
+          import android.app.Service
+          import android.content.Context
+          import android.content.Intent
+          import android.net.Uri
+          import android.os.Build
+          import android.os.IBinder
+          import android.os.PowerManager
+          import androidx.core.app.NotificationCompat
+          import androidx.exifinterface.media.ExifInterface
+          import kotlinx.coroutines.*
+          import org.json.JSONObject
+          import java.io.*
+          import java.text.SimpleDateFormat
+          import java.util.*
+          import java.util.zip.ZipEntry
+          import java.util.zip.ZipInputStream
+          import java.util.zip.ZipOutputStream
+          import kotlin.math.abs
+
+          class FixerService : Service() {
+
+              private val serviceJob = Job()
+              private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
+              private var wakeLock: PowerManager.WakeLock? = null
+
+              companion object {
+                  const val CHANNEL_ID = "takeout_fixer_fg_channel"
+                  const val NOTIF_ID = 2001
+
+                  const val ACTION_START = "ACTION_START"
+                  const val ACTION_PROGRESS = "com.takeout.fixer.ACTION_PROGRESS"
+                  const val ACTION_COMPLETED = "com.takeout.fixer.ACTION_COMPLETED"
+                  const val ACTION_ERROR = "com.takeout.fixer.ACTION_ERROR"
+                  const val ACTION_LOG = "com.takeout.fixer.ACTION_LOG"
+
+                  const val EXTRA_INPUT_URI = "EXTRA_INPUT_URI"
+                  const val EXTRA_OUTPUT_URI = "EXTRA_OUTPUT_URI"
+                  const val EXTRA_PROGRESS = "EXTRA_PROGRESS"
+                  const val EXTRA_STATUS = "EXTRA_STATUS"
+                  const val EXTRA_MESSAGE = "EXTRA_MESSAGE"
+                  const val EXTRA_STATS = "EXTRA_STATS"
+              }
+
+              override fun onBind(intent: Intent?): IBinder? = null
+
+              override fun onCreate() {
+                  super.onCreate()
+                  createNotificationChannel()
+                  val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+                  wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TakeoutFixer::ProcessingWakeLock")
+              }
+
+              override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+                  if (intent?.action == ACTION_START) {
+                      val inUri = intent.getParcelableExtra<Uri>(EXTRA_INPUT_URI)
+                      val outUri = intent.getParcelableExtra<Uri>(EXTRA_OUTPUT_URI)
+                      if (inUri != null && outUri != null) {
+                          startForeground(NOTIF_ID, buildForegroundNotification(0, "Inizializzazione Takeout Fixer v7..."))
+                          wakeLock?.acquire(240 * 60 * 1000L)
+                          serviceScope.launch {
+                              processZip(inUri, outUri)
+                          }
+                      } else {
+                          stopSelf()
+                      }
+                  }
+                  return START_NOT_STICKY
+              }
+
+              private fun createNotificationChannel() {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      val channel = NotificationChannel(
+                          CHANNEL_ID,
+                          "Elaborazione Takeout (Background)",
+                          NotificationManager.IMPORTANCE_LOW
+                      ).apply {
+                          description = "Mantiene l app attiva in background durante l elaborazione"
+                      }
+                      val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                      manager.createNotificationChannel(channel)
+                  }
+              }
+
+              private fun buildForegroundNotification(progress: Int, status: String): Notification {
+                  return NotificationCompat.Builder(this, CHANNEL_ID)
+                      .setSmallIcon(android.R.drawable.stat_sys_download)
+                      .setContentTitle("Takeout Fixer in esecuzione")
+                      .setContentText(status)
+                      .setProgress(100, progress, false)
+                      .setOngoing(true)
+                      .setOnlyAlertOnce(true)
+                      .build()
+              }
+
+              private fun notifyProgress(pct: Int, status: String) {
+                  val notifManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                  notifManager.notify(NOTIF_ID, buildForegroundNotification(pct, status))
+
+                  val intent = Intent(ACTION_PROGRESS).apply {
+                      putExtra(EXTRA_PROGRESS, pct)
+                      putExtra(EXTRA_STATUS, status)
+                      setPackage(packageName)
+                  }
+                  sendBroadcast(intent)
+              }
+
+              private fun sendLog(msg: String) {
+                  val intent = Intent(ACTION_LOG).apply {
+                      putExtra(EXTRA_MESSAGE, msg)
+                      setPackage(packageName)
+                  }
+                  sendBroadcast(intent)
+              }
+
+              private fun sendDoneNotification(title: String, message: String) {
+                  val notifManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                  val notif = NotificationCompat.Builder(this, CHANNEL_ID)
+                      .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                      .setContentTitle(title)
+                      .setContentText(message)
+                      .setPriority(NotificationCompat.PRIORITY_HIGH)
+                      .setAutoCancel(true)
+                      .build()
+                  notifManager.notify(2002, notif)
+              }
+
+              private fun findJsonForMedia(mediaFile: File): File? {
+                  val parent = mediaFile.parentFile ?: return null
+                  val name = mediaFile.name
+                  val stem = mediaFile.nameWithoutExtension
+                  val ext = mediaFile.extension
+
+                  val children = parent.listFiles() ?: return null
+                  for (f in children) {
+                      if (f.name.startsWith("$name.") && f.name.endsWith(".json")) return f
+                  }
+                  val direct = File(parent, "$stem.json")
+                  if (direct.exists()) return direct
+
+                  if (stem.contains("(") && stem.endsWith(")")) {
+                      val idx = stem.lastIndexOf("(")
+                      val base = stem.substring(0, idx)
+                      val num = stem.substring(idx)
+                      val swapped = File(parent, "$base.$ext$num.json")
+                      if (swapped.exists()) return swapped
+                  }
+                  return null
+              }
+
+              private fun convertToRationalLatLon(deg: Double): String {
+                  val d = abs(deg)
+                  val degrees = d.toInt()
+                  val minutesFloat = (d - degrees) * 60
+                  val minutes = minutesFloat.toInt()
+                  val seconds = ((minutesFloat - minutes) * 60 * 10000).toInt()
+                  return "$degrees/1,$minutes/1,$seconds/10000"
+              }
+
+              private suspend fun processZip(inUri: Uri, outUri: Uri) {
+                  val workDir = File(cacheDir, "takeout_work_${System.currentTimeMillis()}")
+                  workDir.mkdirs()
+
+                  val yearStats = mutableMapOf<String, Int>()
+                  var gpsCount = 0
+
+                  try {
+                      notifyProgress(5, "1/3 Decompressione archivio Takeout...")
+                      sendLog("Decompressione in streaming su memoria interna...")
+
+                      contentResolver.openInputStream(inUri)?.use { rawIn ->
+                          ZipInputStream(BufferedInputStream(rawIn)).use { zis ->
+                              var entry: ZipEntry? = zis.nextEntry
+                              val buffer = ByteArray(65536)
+                              while (entry != null) {
+                                  if (!entry.isDirectory) {
+                                      val outFile = File(workDir, entry.name)
+                                      outFile.parentFile?.mkdirs()
+                                      FileOutputStream(outFile).use { fos ->
+                                          var len: Int
+                                          while (zis.read(buffer).also { len = it } > 0) {
+                                              fos.write(buffer, 0, len)
+                                          }
+                                      }
+                                  }
+                                  zis.closeEntry()
+                                  entry = zis.nextEntry
+                              }
+                          }
+                      }
+
+                      notifyProgress(35, "2/3 Applicazione metadati e cartelle Anno Mese...")
+                      val allFiles = workDir.walkTopDown().filter { it.isFile && !it.name.endsWith(".json", true) }.toList()
+                      val total = allFiles.size
+                      var merged = 0
+
+                      val exifDateFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).apply {
+                          timeZone = TimeZone.getDefault()
+                      }
+                      val folderDateFormat = SimpleDateFormat("yyyy/MM - MMMM", Locale.ITALIAN).apply {
+                          timeZone = TimeZone.getDefault()
+                      }
+                      val yearFormat = SimpleDateFormat("yyyy", Locale.US).apply {
+                          timeZone = TimeZone.getDefault()
+                      }
+
+                      val targetPathMap = mutableMapOf<File, String>()
+
+                      for ((index, mediaFile) in allFiles.withIndex()) {
+                          val jsonFile = findJsonForMedia(mediaFile)
+                          var takenTime = mediaFile.lastModified()
+
+                          if (jsonFile != null && jsonFile.exists()) {
+                              try {
+                                  val jsonObj = JSONObject(jsonFile.readText())
+                                  val ts = jsonObj.optJSONObject("photoTakenTime")?.optString("timestamp", "0")?.toLongOrNull() ?: 0L
+                                  val geo = jsonObj.optJSONObject("geoData")
+                                  val lat = geo?.optDouble("latitude", 0.0) ?: 0.0
+                                  val lon = geo?.optDouble("longitude", 0.0) ?: 0.0
+                                  val desc = jsonObj.optString("description", "")
+
+                                  if (ts > 0) takenTime = ts * 1000
+
+                                  val ext = mediaFile.extension.lowercase()
+                                  if (ext == "jpg" || ext == "jpeg" || ext == "webp") {
+                                      val exif = ExifInterface(mediaFile)
+                                      if (ts > 0) {
+                                          val dateStr = exifDateFormat.format(Date(takenTime))
+                                          exif.setAttribute(ExifInterface.TAG_DATETIME, dateStr)
+                                          exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, dateStr)
+                                          exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, dateStr)
+                                      }
+                                      if (lat != 0.0 || lon != 0.0) {
+                                          exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, convertToRationalLatLon(lat))
+                                          exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, if (lat >= 0) "N" else "S")
+                                          exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, convertToRationalLatLon(lon))
+                                          exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, if (lon >= 0) "E" else "W")
+                                          gpsCount++
+                                      }
+                                      if (desc.isNotEmpty()) {
+                                          exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, desc)
+                                      }
+                                      exif.saveAttributes()
+                                  }
+
+                                  if (ts > 0) mediaFile.setLastModified(takenTime)
+                                  merged++
+                              } catch (e: Exception) {
+                                  sendLog("JSON ignorato per ${mediaFile.name}: ${e.message}")
+                              }
+                          }
+
+                          val dateObj = Date(takenTime)
+                          val folderName = folderDateFormat.format(dateObj)
+                          val yearStr = yearFormat.format(dateObj)
+                          yearStats[yearStr] = (yearStats[yearStr] ?: 0) + 1
+
+                          targetPathMap[mediaFile] = "$folderName/${mediaFile.name}"
+
+                          if (index % 25 == 0 || index == total - 1) {
+                              val pct = 35 + ((index + 1) * 35 / total.coerceAtLeast(1))
+                              notifyProgress(pct, "2/3 Metadati e cartelle: ${index + 1}/$total")
+                          }
+                      }
+
+                      notifyProgress(70, "3/3 Compressione ZIP finale...")
+                      sendLog("Compressione e ottimizzazione finale...")
+
+                      contentResolver.openOutputStream(outUri)?.use { rawOut ->
+                          ZipOutputStream(BufferedOutputStream(rawOut)).use { zos ->
+                              val buffer = ByteArray(65536)
+                              for ((index, mediaFile) in allFiles.withIndex()) {
+                                  val relPath = targetPathMap[mediaFile] ?: mediaFile.name
+                                  val zipEntry = ZipEntry(relPath).apply {
+                                      time = mediaFile.lastModified()
+                                  }
+                                  zos.putNextEntry(zipEntry)
+                                  FileInputStream(mediaFile).use { fis ->
+                                      var len: Int
+                                      while (fis.read(buffer).also { len = it } > 0) {
+                                          zos.write(buffer, 0, len)
+                                      }
+                                  }
+                                  zos.closeEntry()
+
+                                  if (index % 25 == 0 || index == total - 1) {
+                                      val pct = 70 + ((index + 1) * 30 / total.coerceAtLeast(1))
+                                      notifyProgress(pct, "3/3 Compressione ZIP: ${index + 1}/$total")
+                                  }
+                              }
+                          }
+                      }
+
+                      notifyProgress(100, "Elaborazione completata!")
+                      sendDoneNotification("Takeout Fixer", "Completato: $merged file uniti e organizzati!")
+
+                      val statsBuilder = StringBuilder()
+                      statsBuilder.append("Totale file multimediali: $total\n")
+                      statsBuilder.append("Metadati JSON abbinati: $merged\n")
+                      statsBuilder.append("Foto con coordinate GPS: $gpsCount\n\n")
+                      statsBuilder.append("Ripartizione per Anno:\n")
+                      yearStats.toSortedMap(compareByDescending { it }).forEach { (anno, count) ->
+                          statsBuilder.append("• $anno: $count file\n")
+                      }
+
+                      val compIntent = Intent(ACTION_COMPLETED).apply {
+                          putExtra(EXTRA_STATS, statsBuilder.toString())
+                          setPackage(packageName)
+                      }
+                      sendBroadcast(compIntent)
+
+                  } catch (e: Exception) {
+                      notifyProgress(0, "Errore durante l elaborazione")
+                      sendLog("ERRORE: ${e.message}")
+                      sendDoneNotification("Takeout Fixer", "Errore: ${e.message}")
+
+                      val errIntent = Intent(ACTION_ERROR).apply {
+                          putExtra(EXTRA_MESSAGE, e.message ?: "Errore sconosciuto")
+                          setPackage(packageName)
+                      }
+                      sendBroadcast(errIntent)
+                  } finally {
+                      workDir.deleteRecursively()
+                      if (wakeLock?.isHeld == true) wakeLock?.release()
+                      stopForeground(STOP_FOREGROUND_REMOVE)
+                      stopSelf()
+                  }
+              }
+
+              override fun onDestroy() {
+                  super.onDestroy()
+                  serviceJob.cancel()
+                  if (wakeLock?.isHeld == true) wakeLock?.release()
+              }
+          }
+          EOF
+
+      - name: Configura Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Configura Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+          cache-disabled: true
+
+      - name: Compila APK
+        run: gradle assembleDebug --stacktrace --no-daemon
+
+      - name: Carica APK pronto
+        uses: actions/upload-artifact@v4
+        with:
+          name: TakeoutFixer-APK-v7
+          path: app/build/outputs/apk/debug/app-debug.apk
