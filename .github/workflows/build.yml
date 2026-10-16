@@ -173,9 +173,9 @@ jobs:
               <string name="no_file_selected">Nessun file selezionato</string>
               <string name="btn_browse_zip">Scegli file ZIP</string>
               <string name="output_card_title">Elaborazione e Destinazione</string>
-              <string name="output_desc">Organizza in Anno/Mese con metadati EXIF e GPS inclusi.</string>
+              <string name="output_desc">Organizza in Anno e Mese con metadati EXIF e GPS inclusi.</string>
               <string name="btn_start">Salva e Avvia</string>
-              <string name="ready">Pronto all uso...</string>
+              <string name="ready">Pronto all uso</string>
               <string name="system_log">Console di Sistema</string>
               <string name="init_complete">Takeout Fixer v9.0 avviato con successo.</string>
               <string name="settings">Impostazioni</string>
@@ -188,14 +188,14 @@ jobs:
               <string name="theme_dark">Glass Scuro</string>
               <string name="close">Chiudi</string>
               <string name="conv_title">Convertitore Multimediale</string>
-              <string name="conv_desc">Estrai audio MP3 da MP4 o converti file:</string>
-              <string name="btn_select_media">Scegli Video/Audio</string>
-              <string name="btn_convert_now">Converti / Estrai Audio</string>
+              <string name="conv_desc">Estrai traccia audio da file video:</string>
+              <string name="btn_select_media">Scegli Video o Audio</string>
+              <string name="btn_convert_now">Converti ed Estrai Audio</string>
               <string name="retouch_title">Studio Ritocco Immagini</string>
               <string name="retouch_desc">Regola ed esporta le tue foto:</string>
               <string name="btn_select_img">Scegli Immagine</string>
-              <string name="btn_rotate">Ruota 90°</string>
-              <string name="btn_filter_bw">Filtro B/N</string>
+              <string name="btn_rotate">Ruota 90</string>
+              <string name="btn_filter_bw">Filtro Bianco e Nero</string>
               <string name="btn_save_img">Esporta Immagine</string>
           </resources>
           EOF
@@ -217,10 +217,10 @@ jobs:
               <string name="input_card_title">Takeout Archive</string>
               <string name="no_file_selected">No file selected</string>
               <string name="btn_browse_zip">Choose ZIP File</string>
-              <string name="output_card_title">Processing &amp; Target</string>
-              <string name="output_desc">Sort into Year/Month with embedded EXIF &amp; GPS metadata.</string>
+              <string name="output_card_title">Processing Target</string>
+              <string name="output_desc">Sort into Year and Month with embedded EXIF and GPS metadata.</string>
               <string name="btn_start">Save and Start</string>
-              <string name="ready">Ready to process...</string>
+              <string name="ready">Ready to process</string>
               <string name="system_log">System Console</string>
               <string name="init_complete">Takeout Fixer v9.0 initialized.</string>
               <string name="settings">Settings</string>
@@ -233,14 +233,14 @@ jobs:
               <string name="theme_dark">Glass Dark</string>
               <string name="close">Close</string>
               <string name="conv_title">Media Converter</string>
-              <string name="conv_desc">Extract MP3 audio from MP4 or convert files:</string>
-              <string name="btn_select_media">Choose Video/Audio</string>
-              <string name="btn_convert_now">Convert / Extract Audio</string>
+              <string name="conv_desc">Extract audio track from video file:</string>
+              <string name="btn_select_media">Choose Video or Audio</string>
+              <string name="btn_convert_now">Convert and Extract Audio</string>
               <string name="retouch_title">Image Retouch Studio</string>
               <string name="retouch_desc">Edit, enhance and export your photos:</string>
               <string name="btn_select_img">Choose Picture</string>
-              <string name="btn_rotate">Rotate 90°</string>
-              <string name="btn_filter_bw">B&amp;W Filter</string>
+              <string name="btn_rotate">Rotate 90</string>
+              <string name="btn_filter_bw">Black and White Filter</string>
               <string name="btn_save_img">Export Picture</string>
           </resources>
           EOF
@@ -1193,7 +1193,7 @@ jobs:
                   }
               }
 
-              private val notifPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+              private val notifPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
                   checkAndRefreshPermissionDialog()
               }
 
@@ -1279,7 +1279,7 @@ jobs:
                               MaterialAlertDialogBuilder(this)
                                   .setTitle("Ritocco Immagini")
                                   .setMessage("Immagine modificata salvata con successo!")
-                                  .setPositiveButton("Ottimo", null)
+                                  .setPositiveButton("OK", null)
                                   .show()
                           }
                       } catch (e: Exception) {
@@ -1598,7 +1598,7 @@ jobs:
                       .setTitle(R.string.about_creator)
                       .setMessage("Questa bellissima app e stata creata con passione da Imran Dzaferi per organizzare automaticamente ogni foto e video di Google Takeout!")
                       .setIcon(R.drawable.ic_check_circle)
-                      .setPositiveButton("Grande Imran!", null)
+                      .setPositiveButton("OK", null)
                       .show()
               }
 
@@ -1936,7 +1936,7 @@ jobs:
                       statsBuilder.append("Foto con coordinate GPS: $gpsCount\n\n")
                       statsBuilder.append("Ripartizione per Anno:\n")
                       yearStats.toSortedMap(compareByDescending { it }).forEach { (anno, count) ->
-                          statsBuilder.append("• $anno: $count file\n")
+                          statsBuilder.append("Anno $anno: $count file\n")
                       }
 
                       val compIntent = Intent(ACTION_COMPLETED).apply {
