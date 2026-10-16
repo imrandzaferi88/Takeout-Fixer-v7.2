@@ -1,22 +1,42 @@
-name: Build TakeoutFixer v9.0 Studio
+name: Build Takeout Fixer Studio APK
 
 on:
   push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Genera sorgenti completi v9.0
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle 8.4
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+
+      - name: Generate Project Structure and Root Configs
         run: |
-          mkdir -p app/src/main/java/com/takeout/fixer
+          mkdir -p app/src/main/java/com/imrandzaferi/takeoutfixer
           mkdir -p app/src/main/res/layout
-          mkdir -p app/src/main/res/values
-          mkdir -p app/src/main/res/values-en
-          mkdir -p app/src/main/res/values-night
           mkdir -p app/src/main/res/drawable
-          mkdir -p app/src/main/res/mipmap-anydpi-v26
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/values-night
+          mkdir -p app/src/main/res/values-en
 
           cat << 'EOF' > settings.gradle
           pluginManagement {
@@ -33,7 +53,7 @@ jobs:
                   mavenCentral()
               }
           }
-          rootProject.name = "TakeoutFixer"
+          rootProject.name = "TakeoutFixerStudio"
           include ':app'
           EOF
 
@@ -45,10 +65,10 @@ jobs:
           EOF
 
           cat << 'EOF' > gradle.properties
-          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
           android.useAndroidX=true
-          kotlin.code.style=official
           android.nonTransitiveRClass=true
+          kotlin.code.style=official
           EOF
 
           cat << 'EOF' > app/build.gradle
@@ -58,26 +78,31 @@ jobs:
           }
 
           android {
-              namespace 'com.takeout.fixer'
+              namespace 'com.imrandzaferi.takeoutfixer'
               compileSdk 34
 
               defaultConfig {
-                  applicationId "com.takeout.fixer"
+                  applicationId "com.imrandzaferi.takeoutfixer"
                   minSdk 26
                   targetSdk 34
-                  versionCode 10
-                  versionName "9.0"
+                  versionCode 1
+                  versionName "1.0 Pro"
               }
 
               buildTypes {
                   release {
                       minifyEnabled false
                   }
+                  debug {
+                      debuggable true
+                  }
               }
+
               compileOptions {
                   sourceCompatibility JavaVersion.VERSION_17
                   targetCompatibility JavaVersion.VERSION_17
               }
+
               kotlinOptions {
                   jvmTarget = '17'
               }
@@ -92,1535 +117,977 @@ jobs:
           }
           EOF
 
+      - name: Generate AndroidManifest.xml
+        run: |
+          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+              <uses-permission android:name="android.permission.WAKE_LOCK" />
+              <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+              <application
+                  android:allowBackup="true"
+                  android:icon="@android:drawable/sym_def_app_icon"
+                  android:roundIcon="@android:drawable/sym_def_app_icon"
+                  android:label="@string/app_name"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.TakeoutFixerStudio">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:configChanges="uiMode|locale|layoutDirection">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+
+                  <service
+                      android:name=".TakeoutFixerService"
+                      android:enabled="true"
+                      android:exported="false"
+                      android:foregroundServiceType="dataSync" />
+
+              </application>
+
+          </manifest>
+          EOF
+
+      - name: Generate Liquid Glass Drawables and Values (Day & Night + Localization)
+        run: |
           cat << 'EOF' > app/src/main/res/values/colors.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <color name="glass_bg_gradient_start">#EAF2FC</color>
-              <color name="glass_bg_gradient_end">#DCE7F7</color>
-              <color name="glass_card_surface">#D9FFFFFF</color>
-              <color name="glass_card_stroke">#80FFFFFF</color>
-              <color name="glass_inner_box">#66F1F5FB</color>
-              <color name="glass_primary">#007AFF</color>
-              <color name="glass_on_primary">#FFFFFF</color>
-              <color name="glass_primary_pill">#26007AFF</color>
-              <color name="text_primary">#1C1C1E</color>
-              <color name="text_secondary">#48484A</color>
-              <color name="text_tertiary">#8E8E93</color>
-              <color name="glass_console">#D91E222A</color>
-              <color name="glass_console_text">#64D2FF</color>
-              <color name="accent_green">#34C759</color>
-              <color name="accent_amber">#FF9500</color>
+              <color name="liquid_bg_start">#DCEEFF</color>
+              <color name="liquid_bg_center">#EBF4FF</color>
+              <color name="liquid_bg_end">#CFE2FF</color>
+              <color name="glass_surface">#D9FFFFFF</color>
+              <color name="glass_pill_surface">#B3FFFFFF</color>
+              <color name="glass_stroke">#99FFFFFF</color>
+              <color name="glass_text_primary">#0F172A</color>
+              <color name="glass_text_secondary">#475569</color>
+              <color name="glass_accent">#007AFF</color>
+              <color name="glass_accent_text">#FFFFFF</color>
+              <color name="console_bg">#1A0F172A</color>
+              <color name="console_text">#0B5394</color>
+              <color name="status_ok">#15803D</color>
+              <color name="status_warn">#B45309</color>
           </resources>
           EOF
 
           cat << 'EOF' > app/src/main/res/values-night/colors.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <color name="glass_bg_gradient_start">#090B10</color>
-              <color name="glass_bg_gradient_end">#121520</color>
-              <color name="glass_card_surface">#D9181C26</color>
-              <color name="glass_card_stroke">#33FFFFFF</color>
-              <color name="glass_inner_box">#4D202636</color>
-              <color name="glass_primary">#0A84FF</color>
-              <color name="glass_on_primary">#FFFFFF</color>
-              <color name="glass_primary_pill">#330A84FF</color>
-              <color name="text_primary">#F2F2F7</color>
-              <color name="text_secondary">#AEAEB2</color>
-              <color name="text_tertiary">#8E8E93</color>
-              <color name="glass_console">#E60D0F15</color>
-              <color name="glass_console_text">#64D2FF</color>
-              <color name="accent_green">#30D158</color>
-              <color name="accent_amber">#FF9F0A</color>
+              <color name="liquid_bg_start">#04060A</color>
+              <color name="liquid_bg_center">#0B1320</color>
+              <color name="liquid_bg_end">#071B26</color>
+              <color name="glass_surface">#D9181C26</color>
+              <color name="glass_pill_surface">#CC1E2433</color>
+              <color name="glass_stroke">#4D80E5FF</color>
+              <color name="glass_text_primary">#F8FAFC</color>
+              <color name="glass_text_secondary">#94A3B8</color>
+              <color name="glass_accent">#00E5FF</color>
+              <color name="glass_accent_text">#041016</color>
+              <color name="console_bg">#9905080D</color>
+              <color name="console_text">#67E8F9</color>
+              <color name="status_ok">#4ADE80</color>
+              <color name="status_warn">#FBBF24</color>
           </resources>
           EOF
 
           cat << 'EOF' > app/src/main/res/values/themes.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <style name="Theme.TakeoutFixer" parent="Theme.Material3.DayNight.NoActionBar">
-                  <item name="colorPrimary">@color/glass_primary</item>
-                  <item name="colorOnPrimary">@color/glass_on_primary</item>
+              <style name="Theme.TakeoutFixerStudio" parent="Theme.Material3.DayNight.NoActionBar">
+                  <item name="colorPrimary">@color/glass_accent</item>
                   <item name="android:statusBarColor">@android:color/transparent</item>
                   <item name="android:navigationBarColor">@android:color/transparent</item>
+                  <item name="android:windowLightStatusBar">true</item>
               </style>
           </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values-night/themes.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="Theme.TakeoutFixerStudio" parent="Theme.Material3.DayNight.NoActionBar">
+                  <item name="colorPrimary">@color/glass_accent</item>
+                  <item name="android:statusBarColor">@android:color/transparent</item>
+                  <item name="android:navigationBarColor">@android:color/transparent</item>
+                  <item name="android:windowLightStatusBar">false</item>
+              </style>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/bg_liquid_gradient.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android"
+              android:shape="rectangle">
+              <gradient
+                  android:angle="135"
+                  android:startColor="@color/liquid_bg_start"
+                  android:centerColor="@color/liquid_bg_center"
+                  android:endColor="@color/liquid_bg_end"
+                  android:type="linear" />
+          </shape>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/bg_glass_card.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android"
+              android:shape="rectangle">
+              <solid android:color="@color/glass_surface" />
+              <corners android:radius="24dp" />
+              <stroke
+                  android:width="1.2dp"
+                  android:color="@color/glass_stroke" />
+          </shape>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/bg_glass_pill.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android"
+              android:shape="rectangle">
+              <solid android:color="@color/glass_pill_surface" />
+              <corners android:radius="50dp" />
+              <stroke
+                  android:width="1dp"
+                  android:color="@color/glass_stroke" />
+          </shape>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/drawable/bg_console_box.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android"
+              android:shape="rectangle">
+              <solid android:color="@color/console_bg" />
+              <corners android:radius="16dp" />
+              <stroke
+                  android:width="1dp"
+                  android:color="@color/glass_stroke" />
+          </shape>
           EOF
 
           cat << 'EOF' > app/src/main/res/values/strings.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <string name="app_name">Takeout Fixer</string>
-              <string name="app_version">v9.0 Glass</string>
+              <string name="app_name">Takeout Fixer Studio</string>
+              <string name="app_subtitle">v1.0 Pro - Liquid Glass Engine</string>
               <string name="tab_takeout">Takeout</string>
-              <string name="tab_converter">Converti</string>
-              <string name="tab_retouch">Ritocco</string>
-              <string name="initial_setup_title">Permessi Richiesti</string>
-              <string name="setup_desc">Attiva questi permessi per elaborare in background:</string>
-              <string name="step_notif_title">Notifiche live</string>
-              <string name="step_battery_title">Ottimizzazione batteria</string>
-              <string name="btn_activate">Attiva</string>
-              <string name="btn_set">Imposta</string>
-              <string name="input_card_title">Archivio Takeout</string>
+              <string name="tab_converter">Convertitore</string>
+              <string name="tab_editor">Ritocco</string>
+              <string name="takeout_title">Motore Google Takeout</string>
+              <string name="takeout_desc">Unisci JSON ed EXIF, organizza in Anno/Mese e genera uno ZIP pulito in background.</string>
+              <string name="select_zip_input">1. Seleziona ZIP Google Takeout</string>
+              <string name="select_zip_output">2. Scegli Destinazione ZIP Pulito</string>
               <string name="no_file_selected">Nessun file selezionato</string>
-              <string name="btn_browse_zip">Scegli file ZIP</string>
-              <string name="output_card_title">Elaborazione e Destinazione</string>
-              <string name="output_desc">Organizza in Anno e Mese con metadati EXIF e GPS inclusi.</string>
-              <string name="btn_start">Salva e Avvia</string>
-              <string name="ready">Pronto all uso</string>
-              <string name="system_log">Console di Sistema</string>
-              <string name="init_complete">Takeout Fixer v9.0 avviato con successo.</string>
-              <string name="settings">Impostazioni</string>
-              <string name="change_language">Lingua</string>
-              <string name="change_theme">Aspetto e Tema</string>
-              <string name="default_folder">Cartella predefinita</string>
-              <string name="about_creator">Autore dell app</string>
-              <string name="theme_system">Segui sistema</string>
-              <string name="theme_light">Glass Chiaro</string>
-              <string name="theme_dark">Glass Scuro</string>
-              <string name="close">Chiudi</string>
-              <string name="conv_title">Convertitore Multimediale</string>
-              <string name="conv_desc">Estrai traccia audio da file video:</string>
-              <string name="btn_select_media">Scegli Video o Audio</string>
-              <string name="btn_convert_now">Converti ed Estrai Audio</string>
-              <string name="retouch_title">Studio Ritocco Immagini</string>
-              <string name="retouch_desc">Regola ed esporta le tue foto:</string>
-              <string name="btn_select_img">Scegli Immagine</string>
-              <string name="btn_rotate">Ruota 90</string>
-              <string name="btn_filter_bw">Filtro Bianco e Nero</string>
-              <string name="btn_save_img">Esporta Immagine</string>
+              <string name="start_takeout_engine">Avvia Elaborazione Takeout</string>
+              <string name="console_ready">Sistema pronto. Seleziona archivio di input e file di output.</string>
+              <string name="converter_title">Convertitore Multimediale</string>
+              <string name="converter_desc">Estrai traccia audio da video MP4 o converti file multimediali in formato audio.</string>
+              <string name="select_media_btn">Seleziona Video o Audio</string>
+              <string name="convert_media_btn">Estrai e Salva Audio</string>
+              <string name="converter_idle">In attesa di un file multimediale.</string>
+              <string name="editor_title">Studio Ritocco Immagini</string>
+              <string name="editor_desc">Ruota, applica filtro monocromatico ed esporta in alta qualita.</string>
+              <string name="select_image_btn">Carica Immagine</string>
+              <string name="rotate_90_btn">Ruota 90°</string>
+              <string name="filter_bw_btn">Bianco e Nero</string>
+              <string name="reset_img_btn">Ripristina</string>
+              <string name="save_image_btn">Esporta JPG</string>
+              <string name="perm_modal_title">Configurazione Permessi</string>
+              <string name="perm_modal_desc">Per elaborare archivi pesanti a schermo spento sono necessari i seguenti permessi.</string>
+              <string name="perm_step1_title">Step 1: Notifiche Live</string>
+              <string name="perm_step1_btn">Attiva Notifiche</string>
+              <string name="perm_step2_title">Step 2: Batteria Senza Restrizioni</string>
+              <string name="perm_step2_btn">Esenta Batteria</string>
+              <string name="perm_granted">Concesso</string>
+              <string name="perm_missing">Richiesto</string>
+              <string name="perm_continue">Chiudi finestra</string>
+              <string name="settings_title">Impostazioni Studio</string>
+              <string name="setting_folder_title">Cartella di Default</string>
+              <string name="setting_folder_btn">Cambia Cartella Predefinita</string>
+              <string name="setting_theme_title">Aspetto e Tema</string>
+              <string name="theme_system">Sistema</string>
+              <string name="theme_light">Chiaro</string>
+              <string name="theme_dark">Scuro</string>
+              <string name="setting_lang_title">Lingua Applicazione</string>
+              <string name="lang_it">Italiano</string>
+              <string name="lang_en">English</string>
+              <string name="setting_author_btn">Autore dell applicazione</string>
+              <string name="author_dialog_title">Crediti Sviluppatore</string>
+              <string name="author_dialog_message">Takeout Fixer Studio v1.0 Pro\nSviluppato da: Imran Dzaferi\nArchitettura: Kotlin Native Liquid Glass</string>
+              <string name="ok_btn">Chiudi</string>
           </resources>
           EOF
 
           cat << 'EOF' > app/src/main/res/values-en/strings.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <string name="app_name">Takeout Fixer</string>
-              <string name="app_version">v9.0 Glass</string>
+              <string name="app_name">Takeout Fixer Studio</string>
+              <string name="app_subtitle">v1.0 Pro - Liquid Glass Engine</string>
               <string name="tab_takeout">Takeout</string>
-              <string name="tab_converter">Convert</string>
-              <string name="tab_retouch">Retouch</string>
-              <string name="initial_setup_title">Permissions Required</string>
-              <string name="setup_desc">Enable permissions for smooth background execution:</string>
-              <string name="step_notif_title">Live Notifications</string>
-              <string name="step_battery_title">Battery Optimization</string>
-              <string name="btn_activate">Enable</string>
-              <string name="btn_set">Set</string>
-              <string name="input_card_title">Takeout Archive</string>
+              <string name="tab_converter">Converter</string>
+              <string name="tab_editor">Retouch</string>
+              <string name="takeout_title">Google Takeout Engine</string>
+              <string name="takeout_desc">Merge JSON metadata into EXIF, sort into Year/Month folders and build a clean ZIP.</string>
+              <string name="select_zip_input">1. Select Google Takeout ZIP</string>
+              <string name="select_zip_output">2. Choose Clean Output ZIP</string>
               <string name="no_file_selected">No file selected</string>
-              <string name="btn_browse_zip">Choose ZIP File</string>
-              <string name="output_card_title">Processing Target</string>
-              <string name="output_desc">Sort into Year and Month with embedded EXIF and GPS metadata.</string>
-              <string name="btn_start">Save and Start</string>
-              <string name="ready">Ready to process</string>
-              <string name="system_log">System Console</string>
-              <string name="init_complete">Takeout Fixer v9.0 initialized.</string>
-              <string name="settings">Settings</string>
-              <string name="change_language">Language</string>
-              <string name="change_theme">App Appearance</string>
-              <string name="default_folder">Default Folder</string>
-              <string name="about_creator">App Author</string>
-              <string name="theme_system">Follow system</string>
-              <string name="theme_light">Glass Light</string>
-              <string name="theme_dark">Glass Dark</string>
-              <string name="close">Close</string>
-              <string name="conv_title">Media Converter</string>
-              <string name="conv_desc">Extract audio track from video file:</string>
-              <string name="btn_select_media">Choose Video or Audio</string>
-              <string name="btn_convert_now">Convert and Extract Audio</string>
-              <string name="retouch_title">Image Retouch Studio</string>
-              <string name="retouch_desc">Edit, enhance and export your photos:</string>
-              <string name="btn_select_img">Choose Picture</string>
-              <string name="btn_rotate">Rotate 90</string>
-              <string name="btn_filter_bw">Black and White Filter</string>
-              <string name="btn_save_img">Export Picture</string>
+              <string name="start_takeout_engine">Start Takeout Processing</string>
+              <string name="console_ready">System ready. Select input archive and output destination.</string>
+              <string name="converter_title">Media Converter</string>
+              <string name="converter_desc">Extract audio stream from MP4 video or convert media files to audio output.</string>
+              <string name="select_media_btn">Select Video or Audio</string>
+              <string name="convert_media_btn">Extract and Save Audio</string>
+              <string name="converter_idle">Waiting for media file selection.</string>
+              <string name="editor_title">Image Retouch Studio</string>
+              <string name="editor_desc">Rotate, apply monochrome filter and export high quality JPEG.</string>
+              <string name="select_image_btn">Load Image</string>
+              <string name="rotate_90_btn">Rotate 90°</string>
+              <string name="filter_bw_btn">Black and White</string>
+              <string name="reset_img_btn">Reset</string>
+              <string name="save_image_btn">Export JPG</string>
+              <string name="perm_modal_title">Permissions Setup</string>
+              <string name="perm_modal_desc">To process large archives with the screen off, please grant both permissions below.</string>
+              <string name="perm_step1_title">Step 1: Live Notifications</string>
+              <string name="perm_step1_btn">Enable Notifications</string>
+              <string name="perm_step2_title">Step 2: Unrestricted Battery</string>
+              <string name="perm_step2_btn">Exempt Battery</string>
+              <string name="perm_granted">Granted</string>
+              <string name="perm_missing">Required</string>
+              <string name="perm_continue">Close dialog</string>
+              <string name="settings_title">Studio Settings</string>
+              <string name="setting_folder_title">Default Folder</string>
+              <string name="setting_folder_btn">Change Default Folder</string>
+              <string name="setting_theme_title">Appearance and Theme</string>
+              <string name="theme_system">System</string>
+              <string name="theme_light">Light</string>
+              <string name="theme_dark">Dark</string>
+              <string name="setting_lang_title">App Language</string>
+              <string name="lang_it">Italiano</string>
+              <string name="lang_en">English</string>
+              <string name="setting_author_btn">Application Author</string>
+              <string name="author_dialog_title">Developer Credits</string>
+              <string name="author_dialog_message">Takeout Fixer Studio v1.0 Pro\nDeveloped by: Imran Dzaferi\nArchitecture: Kotlin Native Liquid Glass</string>
+              <string name="ok_btn">Close</string>
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_liquid_gradient.xml
+      - name: Generate XML Layouts (Main UI, Permissions Modal, Settings BottomSheet)
+        run: |
+          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
           <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <gradient
-                  android:type="linear"
-                  android:angle="135"
-                  android:startColor="@color/glass_bg_gradient_start"
-                  android:endColor="@color/glass_bg_gradient_end"/>
-          </shape>
-          EOF
+          <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/bg_liquid_gradient"
+              android:paddingTop="16dp">
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_glass_card.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/glass_card_surface"/>
-              <stroke
-                  android:width="1.5dp"
-                  android:color="@color/glass_card_stroke"/>
-              <corners android:radius="26dp"/>
-          </shape>
-          EOF
+              <!-- Top Header Bar -->
+              <RelativeLayout
+                  android:id="@+id/headerBar"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginHorizontal="16dp"
+                  android:layout_marginBottom="12dp"
+                  android:background="@drawable/bg_glass_card"
+                  android:paddingHorizontal="20dp"
+                  android:paddingVertical="14dp">
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_glass_sheet.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/glass_card_surface"/>
-              <stroke
-                  android:width="1.5dp"
-                  android:color="@color/glass_card_stroke"/>
-              <corners
-                  android:topLeftRadius="32dp"
-                  android:topRightRadius="32dp"/>
-          </shape>
-          EOF
+                  <LinearLayout
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_alignParentStart="true"
+                      android:layout_centerVertical="true"
+                      android:orientation="vertical">
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_glass_pill.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android">
-              <solid android:color="@color/glass_inner_box"/>
-              <stroke
-                  android:width="1dp"
-                  android:color="@color/glass_card_stroke"/>
-              <corners android:radius="18dp"/>
-          </shape>
-          EOF
+                      <TextView
+                          android:id="@+id/tvAppTitle"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="@string/app_name"
+                          android:textColor="@color/glass_text_primary"
+                          android:textSize="20sp"
+                          android:textStyle="bold" />
 
-          cat << 'EOF' > app/src/main/res/drawable/ic_launcher_foreground.xml
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="108dp"
-              android:height="108dp"
-              android:viewportWidth="108"
-              android:viewportHeight="108">
-              <path
-                  android:fillColor="#007AFF"
-                  android:pathData="M24,24h60c7,0 13,6 13,13v34c0,7 -6,13 -13,13H24c-7,0 -13,-6 -13,-13V37c0,-7 6,-13 13,-13z"/>
-              <path
-                  android:fillColor="#E6FFFFFF"
-                  android:pathData="M34,36h40c3.5,0 6.5,3 6.5,6.5v23c0,3.5 -3,6.5 -6.5,6.5H34c-3.5,0 -6.5,-3 -6.5,-6.5V42.5c0,-3.5 3,-6.5 6.5,-6.5z"/>
-              <path
-                  android:fillColor="#FF9500"
-                  android:pathData="M44,48m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"/>
-              <path
-                  android:fillColor="#34C759"
-                  android:pathData="M36,66l11,-15 9,12 8,-9 14,12z"/>
-              <path
-                  android:fillColor="#0051B3"
-                  android:pathData="M64,30l6,6h-5c0,7.7 -6.3,14 -14,14 -2.5,0 -4.8,-0.7 -6.8,-1.8l2.4,-2.4c1.3,0.5 2.8,0.8 4.4,0.8 5.9,0 10.7,-4.8 10.7,-10.6h-4.7l7,-6z"/>
-          </vector>
-          EOF
+                      <TextView
+                          android:id="@+id/tvAppSubtitle"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="@string/app_subtitle"
+                          android:textColor="@color/glass_text_secondary"
+                          android:textSize="12sp" />
+                  </LinearLayout>
 
-          cat << 'EOF' > app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-              <background android:drawable="@color/glass_primary"/>
-              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
-          </adaptive-icon>
-          EOF
+                  <ImageButton
+                      android:id="@+id/btnSettingsMenu"
+                      android:layout_width="42dp"
+                      android:layout_height="42dp"
+                      android:layout_alignParentEnd="true"
+                      android:layout_centerVertical="true"
+                      android:background="@drawable/bg_glass_pill"
+                      android:contentDescription="@string/settings_title"
+                      android:src="@android:drawable/ic_menu_more"
+                      android:tint="@color/glass_text_primary" />
+              </RelativeLayout>
 
-          cat << 'EOF' > app/src/main/res/drawable/ic_more_vert.xml
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="#8E8E93"
-                  android:pathData="M12,8c1.1,0 2,-0.9 2,-2s-0.9,-2 -2,-2 -2,0.9 -2,2 0.9,2 2,2zM12,10c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM12,16c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2z"/>
-          </vector>
-          EOF
+              <!-- Content Container -->
+              <FrameLayout
+                  android:id="@+id/contentContainer"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:layout_above="@+id/bottomGlassBar"
+                  android:layout_below="@id/headerBar">
 
-          cat << 'EOF' > app/src/main/res/drawable/ic_folder_zip.xml
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="#007AFF"
-                  android:pathData="M20,6h-8l-2,-2H4C2.9,4 2,4.9 2,6v12c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V8C22,6.9 21.1,6 20,6zM18,12h-2v2h2v2h-2v2h-2v-2h2v-2h-2v-2h2v-2h-2V8h2V12z"/>
-          </vector>
-          EOF
+                  <!-- TAB 1: TAKEOUT -->
+                  <ScrollView
+                      android:id="@+id/layoutTabTakeout"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"
+                      android:paddingHorizontal="16dp"
+                      android:visibility="visible">
 
-          cat << 'EOF' > app/src/main/res/drawable/ic_check_circle.xml
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="#34C759"
-                  android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.59L19,8l-9,9z"/>
-          </vector>
-          EOF
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="vertical"
+                          android:paddingBottom="24dp">
 
-          cat << 'EOF' > app/src/main/res/drawable/ic_security.xml
-          <vector xmlns:android="http://schemas.android.com/apk/res/android"
-              android:width="24dp"
-              android:height="24dp"
-              android:viewportWidth="24"
-              android:viewportHeight="24">
-              <path
-                  android:fillColor="#007AFF"
-                  android:pathData="M12,1L3,5v6c0,5.55 3.84,10.74 9,12 5.16,-1.26 9,-6.45 9,-12V5l-9,-4zm0,10.99h7c-.53,4.12 -3.28,7.79 -7,8.94V12H5V6.3l7,-3.11v8.8z"/>
-          </vector>
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:background="@drawable/bg_glass_card"
+                              android:orientation="vertical"
+                              android:padding="20dp">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/takeout_title"
+                                  android:textColor="@color/glass_text_primary"
+                                  android:textSize="18sp"
+                                  android:textStyle="bold" />
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginTop="4dp"
+                                  android:text="@string/takeout_desc"
+                                  android:textColor="@color/glass_text_secondary"
+                                  android:textSize="13sp" />
+
+                              <Button
+                                  android:id="@+id/btnSelectZip"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginTop="16dp"
+                                  android:backgroundTint="@color/glass_accent"
+                                  android:text="@string/select_zip_input"
+                                  android:textColor="@color/glass_accent_text" />
+
+                              <TextView
+                                  android:id="@+id/tvSelectedZip"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginTop="6dp"
+                                  android:text="@string/no_file_selected"
+                                  android:textColor="@color/glass_text_secondary"
+                                  android:textSize="12sp" />
+
+                              <Button
+                                  android:id="@+id/btnSelectOutputZip"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginTop="12dp"
+                                  android:backgroundTint="@color/glass_accent"
+                                  android:text="@string/select_zip_output"
+                                  android:textColor="@color/glass_accent_text" />
+
+                              <TextView
+                                  android:id="@+id/tvSelectedOutputZip"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginTop="6dp"
+                                  android:text="@string/no_file_selected"
+                                  android:textColor="@color/glass_text_secondary"
+                                  android:textSize="12sp" />
+
+                              <Button
+                                  android:id="@+id/btnStartTakeout"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="54dp"
+                                  android:layout_marginTop="18dp"
+                                  android:backgroundTint="@color/glass_accent"
+                                  android:text="@string/start_takeout_engine"
+                                  android:textColor="@color/glass_accent_text"
+                                  android:textStyle="bold" />
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginTop="16dp"
+                                  android:gravity="center_vertical"
+                                  android:orientation="horizontal">
+
+                                  <ProgressBar
+                                      android:id="@+id/progressTakeout"
+                                      style="?android:attr/progressBarStyleHorizontal"
+                                      android:layout_width="0dp"
+                                      android:layout_height="10dp"
+                                      android:layout_weight="1"
+                                      android:max="100"
+                                      android:progress="0" />
+
+                                  <TextView
+                                      android:id="@+id/tvProgressPercent"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginStart="12dp"
+                                      android:text="0%"
+                                      android:textColor="@color/glass_text_primary"
+                                      android:textStyle="bold" />
+                              </LinearLayout>
+
+                              <ScrollView
+                                  android:id="@+id/scrollConsole"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="170dp"
+                                  android:layout_marginTop="14dp"
+                                  android:background="@drawable/bg_console_box"
+                                  android:padding="12dp">
+
+                                  <TextView
+                                      android:id="@+id/tvConsoleLog"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:fontFamily="monospace"
+                                      android:text="@string/console_ready"
+                                      android:textColor="@color/console_text"
+                                      android:textSize="12sp" />
+                              </ScrollView>
+                          </LinearLayout>
+                      </LinearLayout>
+                  </ScrollView>
+
+                  <!-- TAB 2: MEDIA CONVERTER -->
+                  <ScrollView
+                      android:id="@+id/layoutTabConverter"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"
+                      android:paddingHorizontal="16dp"
+                      android:visibility="gone">
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:background="@drawable/bg_glass_card"
+                          android:orientation="vertical"
+                          android:padding="20dp">
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="@string/converter_title"
+                              android:textColor="@color/glass_text_primary"
+                              android:textSize="18sp"
+                              android:textStyle="bold" />
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="4dp"
+                              android:text="@string/converter_desc"
+                              android:textColor="@color/glass_text_secondary"
+                              android:textSize="13sp" />
+
+                          <Button
+                              android:id="@+id/btnSelectMedia"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="16dp"
+                              android:backgroundTint="@color/glass_accent"
+                              android:text="@string/select_media_btn"
+                              android:textColor="@color/glass_accent_text" />
+
+                          <TextView
+                              android:id="@+id/tvSelectedMedia"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:text="@string/no_file_selected"
+                              android:textColor="@color/glass_text_secondary"
+                              android:textSize="12sp" />
+
+                          <Button
+                              android:id="@+id/btnConvertMedia"
+                              android:layout_width="match_parent"
+                              android:layout_height="54dp"
+                              android:layout_marginTop="16dp"
+                              android:backgroundTint="@color/glass_accent"
+                              android:text="@string/convert_media_btn"
+                              android:textColor="@color/glass_accent_text"
+                              android:textStyle="bold" />
+
+                          <ProgressBar
+                              android:id="@+id/progressConverter"
+                              style="?android:attr/progressBarStyleHorizontal"
+                              android:layout_width="match_parent"
+                              android:layout_height="10dp"
+                              android:layout_marginTop="16dp"
+                              android:max="100"
+                              android:progress="0" />
+
+                          <TextView
+                              android:id="@+id/tvConverterStatus"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="12dp"
+                              android:background="@drawable/bg_console_box"
+                              android:fontFamily="monospace"
+                              android:padding="12dp"
+                              android:text="@string/converter_idle"
+                              android:textColor="@color/console_text"
+                              android:textSize="12sp" />
+                      </LinearLayout>
+                  </ScrollView>
+
+                  <!-- TAB 3: IMAGE EDITOR -->
+                  <ScrollView
+                      android:id="@+id/layoutTabEditor"
+                      android:layout_width="match_parent"
+                      android:layout_height="match_parent"
+                      android:paddingHorizontal="16dp"
+                      android:visibility="gone">
+
+                      <LinearLayout
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:background="@drawable/bg_glass_card"
+                          android:orientation="vertical"
+                          android:padding="20dp">
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="@string/editor_title"
+                              android:textColor="@color/glass_text_primary"
+                              android:textSize="18sp"
+                              android:textStyle="bold" />
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="4dp"
+                              android:text="@string/editor_desc"
+                              android:textColor="@color/glass_text_secondary"
+                              android:textSize="13sp" />
+
+                          <FrameLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="240dp"
+                              android:layout_marginTop="14dp"
+                              android:background="@drawable/bg_console_box"
+                              android:padding="8dp">
+
+                              <ImageView
+                                  android:id="@+id/ivEditorPreview"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="match_parent"
+                                  android:scaleType="fitCenter"
+                                  android:src="@android:drawable/ic_menu_gallery" />
+                          </FrameLayout>
+
+                          <Button
+                              android:id="@+id/btnSelectImage"
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="14dp"
+                              android:backgroundTint="@color/glass_accent"
+                              android:text="@string/select_image_btn"
+                              android:textColor="@color/glass_accent_text" />
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:orientation="horizontal">
+
+                              <Button
+                                  android:id="@+id/btnRotateImage"
+                                  android:layout_width="0dp"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginEnd="6dp"
+                                  android:layout_weight="1"
+                                  android:backgroundTint="@color/glass_accent"
+                                  android:text="@string/rotate_90_btn"
+                                  android:textColor="@color/glass_accent_text"
+                                  android:textSize="12sp" />
+
+                              <Button
+                                  android:id="@+id/btnFilterBw"
+                                  android:layout_width="0dp"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginStart="6dp"
+                                  android:layout_weight="1"
+                                  android:backgroundTint="@color/glass_accent"
+                                  android:text="@string/filter_bw_btn"
+                                  android:textColor="@color/glass_accent_text"
+                                  android:textSize="12sp" />
+                          </LinearLayout>
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_marginTop="8dp"
+                              android:orientation="horizontal">
+
+                              <Button
+                                  android:id="@+id/btnResetImage"
+                                  android:layout_width="0dp"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginEnd="6dp"
+                                  android:layout_weight="1"
+                                  android:backgroundTint="@color/glass_accent"
+                                  android:text="@string/reset_img_btn"
+                                  android:textColor="@color/glass_accent_text"
+                                  android:textSize="12sp" />
+
+                              <Button
+                                  android:id="@+id/btnSaveImage"
+                                  android:layout_width="0dp"
+                                  android:layout_height="wrap_content"
+                                  android:layout_marginStart="6dp"
+                                  android:layout_weight="1"
+                                  android:backgroundTint="@color/glass_accent"
+                                  android:text="@string/save_image_btn"
+                                  android:textColor="@color/glass_accent_text"
+                                  android:textSize="12sp"
+                                  android:textStyle="bold" />
+                          </LinearLayout>
+                      </LinearLayout>
+                  </ScrollView>
+              </FrameLayout>
+
+              <!-- Floating Glass Bottom Bar -->
+              <LinearLayout
+                  android:id="@+id/bottomGlassBar"
+                  android:layout_width="match_parent"
+                  android:layout_height="64dp"
+                  android:layout_alignParentBottom="true"
+                  android:layout_marginHorizontal="20dp"
+                  android:layout_marginBottom="16dp"
+                  android:background="@drawable/bg_glass_pill"
+                  android:gravity="center"
+                  android:orientation="horizontal"
+                  android:paddingHorizontal="8dp">
+
+                  <Button
+                      android:id="@+id/btnNavTakeout"
+                      style="?android:attr/borderlessButtonStyle"
+                      android:layout_width="0dp"
+                      android:layout_height="46dp"
+                      android:layout_weight="1"
+                      android:text="@string/tab_takeout"
+                      android:textAllCaps="false"
+                      android:textColor="@color/glass_accent"
+                      android:textStyle="bold" />
+
+                  <Button
+                      android:id="@+id/btnNavConverter"
+                      style="?android:attr/borderlessButtonStyle"
+                      android:layout_width="0dp"
+                      android:layout_height="46dp"
+                      android:layout_weight="1"
+                      android:text="@string/tab_converter"
+                      android:textAllCaps="false"
+                      android:textColor="@color/glass_text_secondary" />
+
+                  <Button
+                      android:id="@+id/btnNavEditor"
+                      style="?android:attr/borderlessButtonStyle"
+                      android:layout_width="0dp"
+                      android:layout_height="46dp"
+                      android:layout_weight="1"
+                      android:text="@string/tab_editor"
+                      android:textAllCaps="false"
+                      android:textColor="@color/glass_text_secondary" />
+              </LinearLayout>
+
+          </RelativeLayout>
           EOF
 
           cat << 'EOF' > app/src/main/res/layout/dialog_glass_permissions.xml
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:orientation="vertical"
               android:background="@drawable/bg_glass_card"
+              android:orientation="vertical"
               android:padding="24dp">
 
-              <LinearLayout
-                  android:layout_width="match_parent"
+              <TextView
+                  android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
-                  android:orientation="horizontal"
-                  android:gravity="center_vertical"
-                  android:layout_marginBottom="12dp">
-                  <ImageView
-                      android:layout_width="26dp"
-                      android:layout_height="26dp"
-                      android:src="@drawable/ic_security"
-                      android:layout_marginEnd="10dp"/>
-                  <TextView
-                      android:layout_width="0dp"
-                      android:layout_height="wrap_content"
-                      android:layout_weight="1"
-                      android:text="@string/initial_setup_title"
-                      android:textSize="18sp"
-                      android:textStyle="bold"
-                      android:textColor="@color/text_primary"/>
-              </LinearLayout>
+                  android:text="@string/perm_modal_title"
+                  android:textColor="@color/glass_text_primary"
+                  android:textSize="20sp"
+                  android:textStyle="bold" />
 
               <TextView
-                  android:layout_width="match_parent"
+                  android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
-                  android:text="@string/setup_desc"
-                  android:textSize="13sp"
-                  android:textColor="@color/text_secondary"
-                  android:layout_marginBottom="16dp"/>
+                  android:layout_marginTop="6dp"
+                  android:text="@string/perm_modal_desc"
+                  android:textColor="@color/glass_text_secondary"
+                  android:textSize="13sp" />
 
+              <!-- Step 1: Notifications -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
-                  android:orientation="horizontal"
-                  android:gravity="center_vertical"
-                  android:background="@drawable/bg_glass_pill"
-                  android:padding="12dp"
-                  android:layout_marginBottom="10dp">
-                  <TextView
-                      android:id="@+id/dlgIconNotif"
-                      android:layout_width="24dp"
-                      android:layout_height="24dp"
-                      android:gravity="center"
-                      android:text="1"
-                      android:textStyle="bold"
-                      android:textColor="@color/glass_primary"
-                      android:layout_marginEnd="10dp"/>
-                  <TextView
-                      android:layout_width="0dp"
+                  android:layout_marginTop="18dp"
+                  android:background="@drawable/bg_console_box"
+                  android:orientation="vertical"
+                  android:padding="14dp">
+
+                  <LinearLayout
+                      android:layout_width="match_parent"
                       android:layout_height="wrap_content"
-                      android:layout_weight="1"
-                      android:text="@string/step_notif_title"
-                      android:textStyle="bold"
-                      android:textSize="13sp"
-                      android:textColor="@color/text_primary"/>
-                  <com.google.android.material.button.MaterialButton
-                      android:id="@+id/dlgBtnNotif"
-                      android:layout_width="wrap_content"
-                      android:layout_height="36dp"
-                      android:text="@string/btn_activate"
-                      android:textSize="12sp"
-                      app:cornerRadius="12dp"
-                      style="@style/Widget.Material3.Button.TonalButton"/>
+                      android:orientation="horizontal">
+
+                      <TextView
+                          android:layout_width="0dp"
+                          android:layout_height="wrap_content"
+                          android:layout_weight="1"
+                          android:text="@string/perm_step1_title"
+                          android:textColor="@color/glass_text_primary"
+                          android:textStyle="bold" />
+
+                      <TextView
+                          android:id="@+id/tvPermNotificationStatus"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="@string/perm_missing"
+                          android:textColor="@color/status_warn"
+                          android:textStyle="bold" />
+                  </LinearLayout>
+
+                  <Button
+                      android:id="@+id/btnPermNotifications"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:backgroundTint="@color/glass_accent"
+                      android:text="@string/perm_step1_btn"
+                      android:textColor="@color/glass_accent_text" />
               </LinearLayout>
 
+              <!-- Step 2: Battery Optimization -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
-                  android:orientation="horizontal"
-                  android:gravity="center_vertical"
-                  android:background="@drawable/bg_glass_pill"
-                  android:padding="12dp"
-                  android:layout_marginBottom="20dp">
-                  <TextView
-                      android:id="@+id/dlgIconBattery"
-                      android:layout_width="24dp"
-                      android:layout_height="24dp"
-                      android:gravity="center"
-                      android:text="2"
-                      android:textStyle="bold"
-                      android:textColor="@color/glass_primary"
-                      android:layout_marginEnd="10dp"/>
-                  <TextView
-                      android:layout_width="0dp"
+                  android:layout_marginTop="12dp"
+                  android:background="@drawable/bg_console_box"
+                  android:orientation="vertical"
+                  android:padding="14dp">
+
+                  <LinearLayout
+                      android:layout_width="match_parent"
                       android:layout_height="wrap_content"
-                      android:layout_weight="1"
-                      android:text="@string/step_battery_title"
-                      android:textStyle="bold"
-                      android:textSize="13sp"
-                      android:textColor="@color/text_primary"/>
-                  <com.google.android.material.button.MaterialButton
-                      android:id="@+id/dlgBtnBattery"
-                      android:layout_width="wrap_content"
-                      android:layout_height="36dp"
-                      android:text="@string/btn_set"
-                      android:textSize="12sp"
-                      app:cornerRadius="12dp"
-                      style="@style/Widget.Material3.Button.TonalButton"/>
+                      android:orientation="horizontal">
+
+                      <TextView
+                          android:layout_width="0dp"
+                          android:layout_height="wrap_content"
+                          android:layout_weight="1"
+                          android:text="@string/perm_step2_title"
+                          android:textColor="@color/glass_text_primary"
+                          android:textStyle="bold" />
+
+                      <TextView
+                          android:id="@+id/tvPermBatteryStatus"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="@string/perm_missing"
+                          android:textColor="@color/status_warn"
+                          android:textStyle="bold" />
+                  </LinearLayout>
+
+                  <Button
+                      android:id="@+id/btnPermBattery"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="10dp"
+                      android:backgroundTint="@color/glass_accent"
+                      android:text="@string/perm_step2_btn"
+                      android:textColor="@color/glass_accent_text" />
               </LinearLayout>
 
-              <com.google.android.material.button.MaterialButton
-                  android:id="@+id/dlgBtnClose"
+              <Button
+                  android:id="@+id/btnPermClose"
+                  style="?android:attr/borderlessButtonStyle"
                   android:layout_width="match_parent"
-                  android:layout_height="48dp"
-                  android:text="@string/close"
-                  app:cornerRadius="14dp"
-                  style="@style/Widget.Material3.Button"/>
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="12dp"
+                  android:text="@string/perm_continue"
+                  android:textColor="@color/glass_text_secondary" />
+
           </LinearLayout>
           EOF
 
           cat << 'EOF' > app/src/main/res/layout/layout_glass_sheet.xml
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
+              android:background="@drawable/bg_glass_card"
               android:orientation="vertical"
-              android:background="@drawable/bg_glass_sheet"
               android:padding="24dp">
-
-              <View
-                  android:layout_width="38dp"
-                  android:layout_height="5dp"
-                  android:background="#4D8E8E93"
-                  android:layout_gravity="center_horizontal"
-                  android:layout_marginBottom="20dp"/>
 
               <TextView
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
-                  android:text="@string/settings"
+                  android:text="@string/settings_title"
+                  android:textColor="@color/glass_text_primary"
                   android:textSize="20sp"
-                  android:textStyle="bold"
-                  android:textColor="@color/text_primary"
-                  android:layout_marginBottom="16dp"/>
+                  android:textStyle="bold" />
+
+              <!-- 1. Default Folder -->
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="16dp"
+                  android:text="@string/setting_folder_title"
+                  android:textColor="@color/glass_text_primary"
+                  android:textStyle="bold" />
+
+              <TextView
+                  android:id="@+id/tvCurrentDefaultFolder"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="4dp"
+                  android:text="@string/no_file_selected"
+                  android:textColor="@color/glass_text_secondary"
+                  android:textSize="12sp" />
+
+              <Button
+                  android:id="@+id/btnSettingDefaultFolder"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="6dp"
+                  android:backgroundTint="@color/glass_accent"
+                  android:text="@string/setting_folder_btn"
+                  android:textColor="@color/glass_accent_text" />
+
+              <!-- 2. Appearance & Theme -->
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="16dp"
+                  android:text="@string/setting_theme_title"
+                  android:textColor="@color/glass_text_primary"
+                  android:textStyle="bold" />
 
               <LinearLayout
-                  android:id="@+id/sheetOptFolder"
                   android:layout_width="match_parent"
-                  android:layout_height="56dp"
-                  android:gravity="center_vertical"
-                  android:background="@drawable/bg_glass_pill"
-                  android:paddingHorizontal="16dp"
-                  android:layout_marginBottom="10dp"
-                  android:clickable="true"
-                  android:focusable="true">
-                  <TextView
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="8dp"
+                  android:orientation="horizontal">
+
+                  <Button
+                      android:id="@+id/btnThemeSystem"
                       android:layout_width="0dp"
                       android:layout_height="wrap_content"
+                      android:layout_marginEnd="4dp"
                       android:layout_weight="1"
-                      android:text="@string/default_folder"
-                      android:textSize="15sp"
-                      android:textColor="@color/text_primary"/>
-                  <ImageView
-                      android:layout_width="20dp"
-                      android:layout_height="20dp"
-                      android:src="@drawable/ic_folder_zip"/>
+                      android:backgroundTint="@color/glass_accent"
+                      android:text="@string/theme_system"
+                      android:textColor="@color/glass_accent_text"
+                      android:textSize="12sp" />
+
+                  <Button
+                      android:id="@+id/btnThemeLight"
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_marginHorizontal="4dp"
+                      android:layout_weight="1"
+                      android:backgroundTint="@color/glass_accent"
+                      android:text="@string/theme_light"
+                      android:textColor="@color/glass_accent_text"
+                      android:textSize="12sp" />
+
+                  <Button
+                      android:id="@+id/btnThemeDark"
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="4dp"
+                      android:layout_weight="1"
+                      android:backgroundTint="@color/glass_accent"
+                      android:text="@string/theme_dark"
+                      android:textColor="@color/glass_accent_text"
+                      android:textSize="12sp" />
               </LinearLayout>
+
+              <!-- 3. Language -->
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="16dp"
+                  android:text="@string/setting_lang_title"
+                  android:textColor="@color/glass_text_primary"
+                  android:textStyle="bold" />
 
               <LinearLayout
-                  android:id="@+id/sheetOptTheme"
                   android:layout_width="match_parent"
-                  android:layout_height="56dp"
-                  android:gravity="center_vertical"
-                  android:background="@drawable/bg_glass_pill"
-                  android:paddingHorizontal="16dp"
-                  android:layout_marginBottom="10dp"
-                  android:clickable="true"
-                  android:focusable="true">
-                  <TextView
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="8dp"
+                  android:orientation="horizontal">
+
+                  <Button
+                      android:id="@+id/btnLangIt"
                       android:layout_width="0dp"
                       android:layout_height="wrap_content"
+                      android:layout_marginEnd="6dp"
                       android:layout_weight="1"
-                      android:text="@string/change_theme"
-                      android:textSize="15sp"
-                      android:textColor="@color/text_primary"/>
-                  <TextView
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="Glass"
-                      android:textSize="12sp"
-                      android:textStyle="bold"
-                      android:textColor="@color/glass_primary"/>
-              </LinearLayout>
+                      android:backgroundTint="@color/glass_accent"
+                      android:text="@string/lang_it"
+                      android:textColor="@color/glass_accent_text" />
 
-              <LinearLayout
-                  android:id="@+id/sheetOptLanguage"
-                  android:layout_width="match_parent"
-                  android:layout_height="56dp"
-                  android:gravity="center_vertical"
-                  android:background="@drawable/bg_glass_pill"
-                  android:paddingHorizontal="16dp"
-                  android:layout_marginBottom="10dp"
-                  android:clickable="true"
-                  android:focusable="true">
-                  <TextView
+                  <Button
+                      android:id="@+id/btnLangEn"
                       android:layout_width="0dp"
                       android:layout_height="wrap_content"
+                      android:layout_marginStart="6dp"
                       android:layout_weight="1"
-                      android:text="@string/change_language"
-                      android:textSize="15sp"
-                      android:textColor="@color/text_primary"/>
-                  <TextView
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="IT / EN"
-                      android:textSize="12sp"
-                      android:textStyle="bold"
-                      android:textColor="@color/glass_primary"/>
+                      android:backgroundTint="@color/glass_accent"
+                      android:text="@string/lang_en"
+                      android:textColor="@color/glass_accent_text" />
               </LinearLayout>
 
-              <LinearLayout
-                  android:id="@+id/sheetOptCreator"
+              <!-- 4. Author Credits -->
+              <Button
+                  android:id="@+id/btnSettingAuthor"
                   android:layout_width="match_parent"
-                  android:layout_height="56dp"
-                  android:gravity="center_vertical"
-                  android:background="@drawable/bg_glass_pill"
-                  android:paddingHorizontal="16dp"
-                  android:layout_marginBottom="16dp"
-                  android:clickable="true"
-                  android:focusable="true">
-                  <TextView
-                      android:layout_width="0dp"
-                      android:layout_height="wrap_content"
-                      android:layout_weight="1"
-                      android:text="@string/about_creator"
-                      android:textSize="15sp"
-                      android:textColor="@color/text_primary"/>
-                  <TextView
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="Imran Dzaferi"
-                      android:textSize="12sp"
-                      android:textStyle="bold"
-                      android:textColor="@color/accent_green"/>
-              </LinearLayout>
+                  android:layout_height="wrap_content"
+                  android:layout_marginTop="18dp"
+                  android:backgroundTint="@color/glass_accent"
+                  android:text="@string/setting_author_btn"
+                  android:textColor="@color/glass_accent_text"
+                  android:textStyle="bold" />
 
-              <com.google.android.material.button.MaterialButton
-                  android:id="@+id/btnSheetClose"
-                  android:layout_width="match_parent"
-                  android:layout_height="52dp"
-                  android:text="@string/close"
-                  app:cornerRadius="16dp"
-                  android:textColor="@color/text_primary"
-                  style="@style/Widget.Material3.Button.TonalButton"/>
           </LinearLayout>
           EOF
 
-          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
-          <?xml version="1.0" encoding="utf-8"?>
-          <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@drawable/bg_liquid_gradient">
-
-              <ScrollView
-                  android:layout_width="match_parent"
-                  android:layout_height="match_parent"
-                  android:layout_above="@+id/bottomGlassBar"
-                  android:fillViewport="true">
-
-                  <LinearLayout
-                      android:layout_width="match_parent"
-                      android:layout_height="wrap_content"
-                      android:orientation="vertical"
-                      android:padding="20dp">
-
-                      <LinearLayout
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:orientation="horizontal"
-                          android:gravity="center_vertical"
-                          android:layout_marginBottom="18dp">
-
-                          <ImageView
-                              android:layout_width="44dp"
-                              android:layout_height="44dp"
-                              android:src="@drawable/ic_folder_zip"
-                              android:layout_marginEnd="14dp"/>
-
-                          <LinearLayout
-                              android:layout_width="0dp"
-                              android:layout_height="wrap_content"
-                              android:layout_weight="1"
-                              android:orientation="vertical">
-
-                              <TextView
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/app_name"
-                                  android:textSize="24sp"
-                                  android:textStyle="bold"
-                                  android:textColor="@color/text_primary"/>
-
-                              <TextView
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/app_version"
-                                  android:textSize="12sp"
-                                  android:textColor="@color/text_secondary"/>
-                          </LinearLayout>
-
-                          <com.google.android.material.button.MaterialButton
-                              android:id="@+id/btnMenu"
-                              style="@style/Widget.Material3.Button.IconButton"
-                              android:layout_width="44dp"
-                              android:layout_height="44dp"
-                              app:icon="@drawable/ic_more_vert"
-                              app:iconTint="@color/text_primary"/>
-                      </LinearLayout>
-
-                      <LinearLayout
-                          android:id="@+id/viewTabTakeout"
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:orientation="vertical">
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="vertical"
-                              android:background="@drawable/bg_glass_card"
-                              android:padding="20dp"
-                              android:layout_marginBottom="14dp">
-
-                              <TextView
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/input_card_title"
-                                  android:textStyle="bold"
-                                  android:textSize="15sp"
-                                  android:textColor="@color/text_primary"
-                                  android:layout_marginBottom="4dp"/>
-
-                              <TextView
-                                  android:id="@+id/tvInputPath"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/no_file_selected"
-                                  android:textSize="12sp"
-                                  android:textColor="@color/text_secondary"
-                                  android:layout_marginBottom="14dp"/>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnSelectInput"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="52dp"
-                                  android:text="@string/btn_browse_zip"
-                                  app:cornerRadius="16dp"
-                                  app:icon="@drawable/ic_folder_zip"
-                                  style="@style/Widget.Material3.Button.TonalButton"/>
-                          </LinearLayout>
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="vertical"
-                              android:background="@drawable/bg_glass_card"
-                              android:padding="20dp"
-                              android:layout_marginBottom="16dp">
-
-                              <TextView
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/output_card_title"
-                                  android:textStyle="bold"
-                                  android:textSize="15sp"
-                                  android:textColor="@color/text_primary"
-                                  android:layout_marginBottom="4dp"/>
-
-                              <TextView
-                                  android:id="@+id/tvCustomFolderStatus"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/output_desc"
-                                  android:textSize="12sp"
-                                  android:textColor="@color/text_secondary"
-                                  android:layout_marginBottom="14dp"/>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnStart"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="56dp"
-                                  android:text="@string/btn_start"
-                                  android:enabled="false"
-                                  app:cornerRadius="16dp"
-                                  style="@style/Widget.Material3.Button"/>
-                          </LinearLayout>
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="vertical"
-                              android:background="@drawable/bg_glass_card"
-                              android:padding="18dp"
-                              android:layout_marginBottom="14dp">
-
-                              <LinearLayout
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:orientation="horizontal"
-                                  android:gravity="center_vertical"
-                                  android:layout_marginBottom="10dp">
-
-                                  <com.google.android.material.progressindicator.CircularProgressIndicator
-                                      android:id="@+id/indicatorPulse"
-                                      android:layout_width="wrap_content"
-                                      android:layout_height="wrap_content"
-                                      android:indeterminate="true"
-                                      app:indicatorSize="26dp"
-                                      app:trackThickness="3dp"
-                                      app:indicatorColor="@color/glass_primary"
-                                      android:layout_marginEnd="10dp"
-                                      android:visibility="invisible"/>
-
-                                  <TextView
-                                      android:id="@+id/tvStatus"
-                                      android:layout_width="0dp"
-                                      android:layout_height="wrap_content"
-                                      android:layout_weight="1"
-                                      android:text="@string/ready"
-                                      android:textStyle="bold"
-                                      android:textSize="13sp"
-                                      android:textColor="@color/text_primary"/>
-
-                                  <TextView
-                                      android:id="@+id/tvPercent"
-                                      android:layout_width="wrap_content"
-                                      android:layout_height="wrap_content"
-                                      android:text="0%"
-                                      android:textStyle="bold"
-                                      android:textSize="15sp"
-                                      android:textColor="@color/glass_primary"/>
-                              </LinearLayout>
-
-                              <com.google.android.material.progressindicator.LinearProgressIndicator
-                                  android:id="@+id/progressBar"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:max="100"
-                                  android:progress="0"
-                                  app:trackCornerRadius="6dp"
-                                  app:trackThickness="8dp"
-                                  app:trackColor="@color/glass_inner_box"
-                                  app:indicatorColor="@color/glass_primary"/>
-                          </LinearLayout>
-
-                          <TextView
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:text="@string/system_log"
-                              android:textStyle="bold"
-                              android:textSize="12sp"
-                              android:textColor="@color/text_tertiary"
-                              android:layout_marginBottom="6dp"/>
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="125dp"
-                              android:background="@drawable/bg_glass_card"
-                              android:padding="12dp">
-
-                              <ScrollView
-                                  android:id="@+id/scrollLog"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="match_parent">
-
-                                  <TextView
-                                      android:id="@+id/tvLog"
-                                      android:layout_width="match_parent"
-                                      android:layout_height="wrap_content"
-                                      android:textColor="@color/glass_console_text"
-                                      android:fontFamily="monospace"
-                                      android:textSize="11sp"
-                                      android:text="@string/init_complete"/>
-                              </ScrollView>
-                          </LinearLayout>
-                      </LinearLayout>
-
-                      <LinearLayout
-                          android:id="@+id/viewTabConverter"
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:orientation="vertical"
-                          android:visibility="gone">
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="vertical"
-                              android:background="@drawable/bg_glass_card"
-                              android:padding="20dp"
-                              android:layout_marginBottom="14dp">
-
-                              <TextView
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/conv_title"
-                                  android:textStyle="bold"
-                                  android:textSize="17sp"
-                                  android:textColor="@color/text_primary"
-                                  android:layout_marginBottom="6dp"/>
-
-                              <TextView
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/conv_desc"
-                                  android:textSize="13sp"
-                                  android:textColor="@color/text_secondary"
-                                  android:layout_marginBottom="14dp"/>
-
-                              <TextView
-                                  android:id="@+id/tvConvSelected"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/no_file_selected"
-                                  android:textSize="12sp"
-                                  android:textColor="@color/glass_primary"
-                                  android:layout_marginBottom="12dp"/>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnConvPick"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="52dp"
-                                  android:text="@string/btn_select_media"
-                                  app:cornerRadius="16dp"
-                                  style="@style/Widget.Material3.Button.TonalButton"
-                                  android:layout_marginBottom="10dp"/>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnConvRun"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="52dp"
-                                  android:text="@string/btn_convert_now"
-                                  android:enabled="false"
-                                  app:cornerRadius="16dp"
-                                  style="@style/Widget.Material3.Button"/>
-                          </LinearLayout>
-                      </LinearLayout>
-
-                      <LinearLayout
-                          android:id="@+id/viewTabRetouch"
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:orientation="vertical"
-                          android:visibility="gone">
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="vertical"
-                              android:background="@drawable/bg_glass_card"
-                              android:padding="20dp"
-                              android:layout_marginBottom="14dp">
-
-                              <TextView
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/retouch_title"
-                                  android:textStyle="bold"
-                                  android:textSize="17sp"
-                                  android:textColor="@color/text_primary"
-                                  android:layout_marginBottom="6dp"/>
-
-                              <TextView
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/retouch_desc"
-                                  android:textSize="13sp"
-                                  android:textColor="@color/text_secondary"
-                                  android:layout_marginBottom="14dp"/>
-
-                              <ImageView
-                                  android:id="@+id/imgRetouchPreview"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="220dp"
-                                  android:background="@drawable/bg_glass_pill"
-                                  android:scaleType="centerInside"
-                                  android:layout_marginBottom="14dp"/>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnRetouchPick"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="50dp"
-                                  android:text="@string/btn_select_img"
-                                  app:cornerRadius="14dp"
-                                  style="@style/Widget.Material3.Button.TonalButton"
-                                  android:layout_marginBottom="8dp"/>
-
-                              <LinearLayout
-                                  android:layout_width="match_parent"
-                                  android:layout_height="wrap_content"
-                                  android:orientation="horizontal"
-                                  android:layout_marginBottom="8dp">
-
-                                  <com.google.android.material.button.MaterialButton
-                                      android:id="@+id/btnRetouchRotate"
-                                      android:layout_width="0dp"
-                                      android:layout_height="48dp"
-                                      android:layout_weight="1"
-                                      android:text="@string/btn_rotate"
-                                      android:enabled="false"
-                                      app:cornerRadius="12dp"
-                                      style="@style/Widget.Material3.Button.TonalButton"
-                                      android:layout_marginEnd="6dp"/>
-
-                                  <com.google.android.material.button.MaterialButton
-                                      android:id="@+id/btnRetouchFilter"
-                                      android:layout_width="0dp"
-                                      android:layout_height="48dp"
-                                      android:layout_weight="1"
-                                      android:text="@string/btn_filter_bw"
-                                      android:enabled="false"
-                                      app:cornerRadius="12dp"
-                                      style="@style/Widget.Material3.Button.TonalButton"/>
-                              </LinearLayout>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnRetouchSave"
-                                  android:layout_width="match_parent"
-                                  android:layout_height="52dp"
-                                  android:text="@string/btn_save_img"
-                                  android:enabled="false"
-                                  app:cornerRadius="16dp"
-                                  style="@style/Widget.Material3.Button"/>
-                          </LinearLayout>
-                      </LinearLayout>
-
-                  </LinearLayout>
-              </ScrollView>
-
-              <LinearLayout
-                  android:id="@+id/bottomGlassBar"
-                  android:layout_width="match_parent"
-                  android:layout_height="64dp"
-                  android:layout_alignParentBottom="true"
-                  android:layout_margin="16dp"
-                  android:background="@drawable/bg_glass_card"
-                  android:orientation="horizontal"
-                  android:gravity="center">
-
-                  <com.google.android.material.button.MaterialButton
-                      android:id="@+id/navTabTakeout"
-                      android:layout_width="0dp"
-                      android:layout_height="match_parent"
-                      android:layout_weight="1"
-                      android:text="@string/tab_takeout"
-                      android:textSize="12sp"
-                      android:textStyle="bold"
-                      android:textColor="@color/glass_primary"
-                      style="@style/Widget.Material3.Button.TextButton"/>
-
-                  <com.google.android.material.button.MaterialButton
-                      android:id="@+id/navTabConverter"
-                      android:layout_width="0dp"
-                      android:layout_height="match_parent"
-                      android:layout_weight="1"
-                      android:text="@string/tab_converter"
-                      android:textSize="12sp"
-                      android:textColor="@color/text_secondary"
-                      style="@style/Widget.Material3.Button.TextButton"/>
-
-                  <com.google.android.material.button.MaterialButton
-                      android:id="@+id/navTabRetouch"
-                      android:layout_width="0dp"
-                      android:layout_height="match_parent"
-                      android:layout_weight="1"
-                      android:text="@string/tab_retouch"
-                      android:textSize="12sp"
-                      android:textColor="@color/text_secondary"
-                      style="@style/Widget.Material3.Button.TextButton"/>
-              </LinearLayout>
-
-          </RelativeLayout>
-          EOF
-
-          cat << 'EOF' > app/src/main/java/com/takeout/fixer/MainActivity.kt
-          package com.takeout.fixer
-
-          import android.Manifest
-          import android.animation.ObjectAnimator
-          import android.annotation.SuppressLint
-          import android.app.Dialog
-          import android.content.BroadcastReceiver
-          import android.content.Context
-          import android.content.Intent
-          import android.content.IntentFilter
-          import android.content.SharedPreferences
-          import android.content.pm.PackageManager
-          import android.graphics.Bitmap
-          import android.graphics.BitmapFactory
-          import android.graphics.ColorMatrix
-          import android.graphics.ColorMatrixColorFilter
-          import android.graphics.Matrix
-          import android.graphics.drawable.ColorDrawable
-          import android.net.Uri
-          import android.os.Build
-          import android.os.Bundle
-          import android.os.PowerManager
-          import android.provider.DocumentsContract
-          import android.provider.Settings
-          import android.view.LayoutInflater
-          import android.view.View
-          import android.view.Window
-          import android.view.animation.DecelerateInterpolator
-          import android.widget.ImageView
-          import android.widget.ScrollView
-          import android.widget.TextView
-          import androidx.activity.result.contract.ActivityResultContracts
-          import androidx.appcompat.app.AppCompatActivity
-          import androidx.appcompat.app.AppCompatDelegate
-          import androidx.core.content.ContextCompat
-          import androidx.core.os.LocaleListCompat
-          import com.google.android.material.bottomsheet.BottomSheetDialog
-          import com.google.android.material.button.MaterialButton
-          import com.google.android.material.dialog.MaterialAlertDialogBuilder
-          import com.google.android.material.progressindicator.CircularProgressIndicator
-          import com.google.android.material.progressindicator.LinearProgressIndicator
-          import java.io.InputStream
-          import java.io.OutputStream
-
-          class MainActivity : AppCompatActivity() {
-
-              private var inputUri: Uri? = null
-              private var defaultFolderUri: Uri? = null
-              private var convSelectedUri: Uri? = null
-              private var retouchBitmap: Bitmap? = null
-              private var isFiltered = false
-
-              private lateinit var viewTabTakeout: View
-              private lateinit var viewTabConverter: View
-              private lateinit var viewTabRetouch: View
-
-              private lateinit var navTabTakeout: MaterialButton
-              private lateinit var navTabConverter: MaterialButton
-              private lateinit var navTabRetouch: MaterialButton
-
-              private lateinit var btnMenu: MaterialButton
-              private lateinit var btnSelectInput: MaterialButton
-              private lateinit var btnStart: MaterialButton
-              private lateinit var tvInputPath: TextView
-              private lateinit var tvStatus: TextView
-              private lateinit var tvPercent: TextView
-              private lateinit var tvLog: TextView
-              private lateinit var tvCustomFolderStatus: TextView
-              private lateinit var progressBar: LinearProgressIndicator
-              private lateinit var indicatorPulse: CircularProgressIndicator
-              private lateinit var scrollLog: ScrollView
-
-              private lateinit var tvConvSelected: TextView
-              private lateinit var btnConvPick: MaterialButton
-              private lateinit var btnConvRun: MaterialButton
-
-              private lateinit var imgRetouchPreview: ImageView
-              private lateinit var btnRetouchPick: MaterialButton
-              private lateinit var btnRetouchRotate: MaterialButton
-              private lateinit var btnRetouchFilter: MaterialButton
-              private lateinit var btnRetouchSave: MaterialButton
-
-              private lateinit var prefs: SharedPreferences
-              private var permissionsDialog: Dialog? = null
-
-              private val receiver = object : BroadcastReceiver() {
-                  override fun onReceive(context: Context?, intent: Intent?) {
-                      when (intent?.action) {
-                          FixerService.ACTION_PROGRESS -> {
-                              val pct = intent.getIntExtra(FixerService.EXTRA_PROGRESS, 0)
-                              val status = intent.getStringExtra(FixerService.EXTRA_STATUS) ?: ""
-
-                              val anim = ObjectAnimator.ofInt(progressBar, "progress", progressBar.progress, pct)
-                              anim.duration = 400
-                              anim.interpolator = DecelerateInterpolator()
-                              anim.start()
-
-                              tvPercent.text = "$pct%"
-                              tvStatus.text = status
-                              indicatorPulse.visibility = if (pct in 1..99) View.VISIBLE else View.INVISIBLE
-                          }
-                          FixerService.ACTION_LOG -> {
-                              val msg = intent.getStringExtra(FixerService.EXTRA_MESSAGE) ?: ""
-                              tvLog.append("$msg\n")
-                              scrollLog.post { scrollLog.fullScroll(ScrollView.FOCUS_DOWN) }
-                          }
-                          FixerService.ACTION_COMPLETED -> {
-                              val stats = intent.getStringExtra(FixerService.EXTRA_STATS) ?: "Elaborazione completata!"
-                              btnSelectInput.isEnabled = true
-                              btnStart.isEnabled = true
-                              indicatorPulse.visibility = View.INVISIBLE
-                              progressBar.progress = 100
-                              tvPercent.text = "100%"
-                              tvStatus.text = "Completato con successo!"
-                              tvLog.append("OPERAZIONE CONCLUSA CON SUCCESSO.\n")
-
-                              MaterialAlertDialogBuilder(this@MainActivity)
-                                  .setTitle("Riepilogo Elaborazione")
-                                  .setMessage(stats)
-                                  .setIcon(R.drawable.ic_check_circle)
-                                  .setPositiveButton("Chiudi", null)
-                                  .show()
-                          }
-                          FixerService.ACTION_ERROR -> {
-                              val error = intent.getStringExtra(FixerService.EXTRA_MESSAGE) ?: "Errore imprevisto"
-                              btnSelectInput.isEnabled = true
-                              btnStart.isEnabled = true
-                              indicatorPulse.visibility = View.INVISIBLE
-                              tvStatus.text = "Errore: $error"
-                              tvLog.append("ERRORE: $error\n")
-                          }
-                      }
-                  }
-              }
-
-              private val notifPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-                  checkAndRefreshPermissionDialog()
-              }
-
-              private val pickInputLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-                  if (uri != null) {
-                      contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                      inputUri = uri
-                      tvInputPath.text = "File selezionato: ${uri.lastPathSegment ?: uri.toString()}"
-                      btnStart.isEnabled = true
-                      tvLog.append("Archivio pronto per l elaborazione.\n")
-                  }
-              }
-
-              private val selectFolderLauncher = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-                  if (uri != null) {
-                      contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                      defaultFolderUri = uri
-                      prefs.edit().putString("default_folder_uri", uri.toString()).apply()
-                      tvCustomFolderStatus.text = "Cartella: ${uri.lastPathSegment ?: uri.toString()}"
-                      tvLog.append("Cartella predefinita impostata.\n")
-                  }
-              }
-
-              private val createOutputLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { outUri ->
-                  val inUri = inputUri
-                  if (inUri != null && outUri != null) {
-                      startFixingProcess(inUri, outUri)
-                  }
-              }
-
-              private val pickConvMediaLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-                  if (uri != null) {
-                      convSelectedUri = uri
-                      tvConvSelected.text = "File: ${uri.lastPathSegment ?: uri.toString()}"
-                      btnConvRun.isEnabled = true
-                  }
-              }
-
-              private val createConvAudioLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("audio/mp3")) { outUri ->
-                  val inUri = convSelectedUri
-                  if (inUri != null && outUri != null) {
-                      try {
-                          contentResolver.openInputStream(inUri)?.use { input ->
-                              contentResolver.openOutputStream(outUri)?.use { output ->
-                                  input.copyTo(output)
-                              }
-                          }
-                          MaterialAlertDialogBuilder(this)
-                              .setTitle("Convertitore")
-                              .setMessage("Traccia audio estratta e salvata con successo!")
-                              .setPositiveButton("OK", null)
-                              .show()
-                      } catch (e: Exception) {
-                          tvLog.append("Errore conversione: ${e.message}\n")
-                      }
-                  }
-              }
-
-              private val pickRetouchLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-                  if (uri != null) {
-                      try {
-                          val stream: InputStream? = contentResolver.openInputStream(uri)
-                          retouchBitmap = BitmapFactory.decodeStream(stream)
-                          imgRetouchPreview.setImageBitmap(retouchBitmap)
-                          btnRetouchRotate.isEnabled = true
-                          btnRetouchFilter.isEnabled = true
-                          btnRetouchSave.isEnabled = true
-                      } catch (e: Exception) {
-                          tvLog.append("Errore caricamento immagine: ${e.message}\n")
-                      }
-                  }
-              }
-
-              private val saveRetouchLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { outUri ->
-                  val bmp = retouchBitmap
-                  if (bmp != null && outUri != null) {
-                      try {
-                          val out: OutputStream? = contentResolver.openOutputStream(outUri)
-                          if (out != null) {
-                              bmp.compress(Bitmap.CompressFormat.JPEG, 95, out)
-                              out.flush()
-                              out.close()
-                              MaterialAlertDialogBuilder(this)
-                                  .setTitle("Ritocco Immagini")
-                                  .setMessage("Immagine modificata salvata con successo!")
-                                  .setPositiveButton("OK", null)
-                                  .show()
-                          }
-                      } catch (e: Exception) {
-                          tvLog.append("Errore salvataggio immagine: ${e.message}\n")
-                      }
-                  }
-              }
-
-              override fun onCreate(savedInstanceState: Bundle?) {
-                  prefs = getSharedPreferences("takeout_fixer_prefs", Context.MODE_PRIVATE)
-                  val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-                  AppCompatDelegate.setDefaultNightMode(savedTheme)
-
-                  super.onCreate(savedInstanceState)
-                  setContentView(R.layout.activity_main)
-
-                  initViews()
-                  setupTabs()
-                  setupListeners()
-                  loadSavedFolder()
-              }
-
-              private fun initViews() {
-                  viewTabTakeout = findViewById(R.id.viewTabTakeout)
-                  viewTabConverter = findViewById(R.id.viewTabConverter)
-                  viewTabRetouch = findViewById(R.id.viewTabRetouch)
-
-                  navTabTakeout = findViewById(R.id.navTabTakeout)
-                  navTabConverter = findViewById(R.id.navTabConverter)
-                  navTabRetouch = findViewById(R.id.navTabRetouch)
-
-                  btnMenu = findViewById(R.id.btnMenu)
-                  btnSelectInput = findViewById(R.id.btnSelectInput)
-                  btnStart = findViewById(R.id.btnStart)
-                  tvInputPath = findViewById(R.id.tvInputPath)
-                  tvStatus = findViewById(R.id.tvStatus)
-                  tvPercent = findViewById(R.id.tvPercent)
-                  tvLog = findViewById(R.id.tvLog)
-                  tvCustomFolderStatus = findViewById(R.id.tvCustomFolderStatus)
-                  progressBar = findViewById(R.id.progressBar)
-                  indicatorPulse = findViewById(R.id.indicatorPulse)
-                  scrollLog = findViewById(R.id.scrollLog)
-
-                  tvConvSelected = findViewById(R.id.tvConvSelected)
-                  btnConvPick = findViewById(R.id.btnConvPick)
-                  btnConvRun = findViewById(R.id.btnConvRun)
-
-                  imgRetouchPreview = findViewById(R.id.imgRetouchPreview)
-                  btnRetouchPick = findViewById(R.id.btnRetouchPick)
-                  btnRetouchRotate = findViewById(R.id.btnRetouchRotate)
-                  btnRetouchFilter = findViewById(R.id.btnRetouchFilter)
-                  btnRetouchSave = findViewById(R.id.btnRetouchSave)
-              }
-
-              private fun setupTabs() {
-                  navTabTakeout.setOnClickListener { switchTab(0) }
-                  navTabConverter.setOnClickListener { switchTab(1) }
-                  navTabRetouch.setOnClickListener { switchTab(2) }
-              }
-
-              private fun switchTab(tabIndex: Int) {
-                  viewTabTakeout.visibility = if (tabIndex == 0) View.VISIBLE else View.GONE
-                  viewTabConverter.visibility = if (tabIndex == 1) View.VISIBLE else View.GONE
-                  viewTabRetouch.visibility = if (tabIndex == 2) View.VISIBLE else View.GONE
-
-                  val colorActive = getColor(R.color.glass_primary)
-                  val colorInactive = getColor(R.color.text_secondary)
-
-                  navTabTakeout.setTextColor(if (tabIndex == 0) colorActive else colorInactive)
-                  navTabConverter.setTextColor(if (tabIndex == 1) colorActive else colorInactive)
-                  navTabRetouch.setTextColor(if (tabIndex == 2) colorActive else colorInactive)
-              }
-
-              private fun loadSavedFolder() {
-                  val folderStr = prefs.getString("default_folder_uri", null)
-                  if (folderStr != null) {
-                      defaultFolderUri = Uri.parse(folderStr)
-                      tvCustomFolderStatus.text = "Cartella: ${defaultFolderUri?.lastPathSegment}"
-                  }
-              }
-
-              @SuppressLint("BatteryLife")
-              private fun setupListeners() {
-                  btnMenu.setOnClickListener { showLiquidGlassBottomSheet() }
-
-                  btnSelectInput.setOnClickListener {
-                      pickInputLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "*/*"))
-                  }
-
-                  btnStart.setOnClickListener {
-                      val targetDir = defaultFolderUri
-                      if (targetDir != null) {
-                          try {
-                              val targetFileUri = DocumentsContract.createDocument(
-                                  contentResolver,
-                                  targetDir,
-                                  "application/zip",
-                                  "Takeout_Ordinato_FIXED.zip"
-                              )
-                              val inUri = inputUri
-                              if (targetFileUri != null && inUri != null) {
-                                  startFixingProcess(inUri, targetFileUri)
-                                  return@setOnClickListener
-                              }
-                          } catch (e: Exception) {
-                              tvLog.append("Salvataggio automatico fallito: ${e.message}\n")
-                          }
-                      }
-                      createOutputLauncher.launch("Takeout_Ordinato_FIXED.zip")
-                  }
-
-                  btnConvPick.setOnClickListener {
-                      pickConvMediaLauncher.launch(arrayOf("video/*", "audio/*"))
-                  }
-
-                  btnConvRun.setOnClickListener {
-                      createConvAudioLauncher.launch("Audio_Estratto.mp3")
-                  }
-
-                  btnRetouchPick.setOnClickListener {
-                      pickRetouchLauncher.launch(arrayOf("image/*"))
-                  }
-
-                  btnRetouchRotate.setOnClickListener {
-                      val bmp = retouchBitmap ?: return@setOnClickListener
-                      val matrix = Matrix().apply { postRotate(90f) }
-                      retouchBitmap = Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
-                      imgRetouchPreview.setImageBitmap(retouchBitmap)
-                  }
-
-                  btnRetouchFilter.setOnClickListener {
-                      if (!isFiltered) {
-                          val cm = ColorMatrix().apply { setSaturation(0f) }
-                          imgRetouchPreview.colorFilter = ColorMatrixColorFilter(cm)
-                          isFiltered = true
-                      } else {
-                          imgRetouchPreview.clearColorFilter()
-                          isFiltered = false
-                      }
-                  }
-
-                  btnRetouchSave.setOnClickListener {
-                      saveRetouchLauncher.launch("Foto_Ritoccata.jpg")
-                  }
-              }
-
-              private fun checkAndRefreshPermissionDialog() {
-                  var notifOk = true
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                      notifOk = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                  }
-
-                  val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-                  val batteryOk = pm.isIgnoringBatteryOptimizations(packageName)
-
-                  if (!notifOk || !batteryOk) {
-                      showLiquidGlassPermissionModal(notifOk, batteryOk)
-                  } else {
-                      permissionsDialog?.dismiss()
-                  }
-              }
-
-              private fun showLiquidGlassPermissionModal(notifOk: Boolean, batteryOk: Boolean) {
-                  if (permissionsDialog?.isShowing == true) {
-                      permissionsDialog?.dismiss()
-                  }
-
-                  val dialog = Dialog(this)
-                  dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-                  val view = LayoutInflater.from(this).inflate(R.layout.dialog_glass_permissions, null)
-
-                  val dlgIconNotif = view.findViewById<TextView>(R.id.dlgIconNotif)
-                  val dlgBtnNotif = view.findViewById<MaterialButton>(R.id.dlgBtnNotif)
-                  val dlgIconBattery = view.findViewById<TextView>(R.id.dlgIconBattery)
-                  val dlgBtnBattery = view.findViewById<MaterialButton>(R.id.dlgBtnBattery)
-                  val dlgBtnClose = view.findViewById<MaterialButton>(R.id.dlgBtnClose)
-
-                  if (notifOk) {
-                      dlgBtnNotif.isEnabled = false
-                      dlgBtnNotif.text = "OK"
-                      dlgIconNotif.text = "OK"
-                      dlgIconNotif.setTextColor(getColor(R.color.accent_green))
-                  } else {
-                      dlgBtnNotif.setOnClickListener {
-                          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                              notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                          }
-                      }
-                  }
-
-                  if (batteryOk) {
-                      dlgBtnBattery.isEnabled = false
-                      dlgBtnBattery.text = "OK"
-                      dlgIconBattery.text = "OK"
-                      dlgIconBattery.setTextColor(getColor(R.color.accent_green))
-                  } else {
-                      dlgBtnBattery.setOnClickListener {
-                          try {
-                              val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                  data = Uri.parse("package:$packageName")
-                              }
-                              startActivity(intent)
-                          } catch (e: Exception) {
-                              val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                  data = Uri.parse("package:$packageName")
-                              }
-                              startActivity(intent)
-                          }
-                      }
-                  }
-
-                  dlgBtnClose.setOnClickListener { dialog.dismiss() }
-
-                  dialog.setContentView(view)
-                  dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
-                  dialog.show()
-                  permissionsDialog = dialog
-              }
-
-              private fun startFixingProcess(inUri: Uri, outUri: Uri) {
-                  contentResolver.takePersistableUriPermission(outUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                  btnSelectInput.isEnabled = false
-                  btnStart.isEnabled = false
-                  indicatorPulse.visibility = View.VISIBLE
-                  tvLog.append("Avvio motore Takeout Fixer...\n")
-
-                  val serviceIntent = Intent(this, FixerService::class.java).apply {
-                      action = FixerService.ACTION_START
-                      putExtra(FixerService.EXTRA_INPUT_URI, inUri)
-                      putExtra(FixerService.EXTRA_OUTPUT_URI, outUri)
-                  }
-                  ContextCompat.startForegroundService(this, serviceIntent)
-              }
-
-              private fun showLiquidGlassBottomSheet() {
-                  val dialog = BottomSheetDialog(this)
-                  val view = LayoutInflater.from(this).inflate(R.layout.layout_glass_sheet, null)
-
-                  val optFolder = view.findViewById<View>(R.id.sheetOptFolder)
-                  val optTheme = view.findViewById<View>(R.id.sheetOptTheme)
-                  val optLang = view.findViewById<View>(R.id.sheetOptLanguage)
-                  val optCreator = view.findViewById<View>(R.id.sheetOptCreator)
-                  val btnClose = view.findViewById<View>(R.id.btnSheetClose)
-
-                  optFolder.setOnClickListener {
-                      dialog.dismiss()
-                      selectFolderLauncher.launch(null)
-                  }
-
-                  optTheme.setOnClickListener {
-                      dialog.dismiss()
-                      showThemeDialog()
-                  }
-
-                  optLang.setOnClickListener {
-                      dialog.dismiss()
-                      showLanguageDialog()
-                  }
-
-                  optCreator.setOnClickListener {
-                      dialog.dismiss()
-                      showCreatorDialog()
-                  }
-
-                  btnClose.setOnClickListener { dialog.dismiss() }
-
-                  dialog.setContentView(view)
-                  dialog.show()
-              }
-
-              private fun showThemeDialog() {
-                  val options = arrayOf(
-                      getString(R.string.theme_system),
-                      getString(R.string.theme_light),
-                      getString(R.string.theme_dark)
-                  )
-                  val currentTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-                  val selectedIdx = when (currentTheme) {
-                      AppCompatDelegate.MODE_NIGHT_NO -> 1
-                      AppCompatDelegate.MODE_NIGHT_YES -> 2
-                      else -> 0
-                  }
-
-                  MaterialAlertDialogBuilder(this)
-                      .setTitle(R.string.change_theme)
-                      .setSingleChoiceItems(options, selectedIdx) { d, which ->
-                          val newTheme = when (which) {
-                              1 -> AppCompatDelegate.MODE_NIGHT_NO
-                              2 -> AppCompatDelegate.MODE_NIGHT_YES
-                              else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                          }
-                          prefs.edit().putInt("app_theme", newTheme).apply()
-                          AppCompatDelegate.setDefaultNightMode(newTheme)
-                          d.dismiss()
-                      }
-                      .setNegativeButton(R.string.close, null)
-                      .show()
-              }
-
-              private fun showLanguageDialog() {
-                  val languages = arrayOf("Italiano", "English")
-                  MaterialAlertDialogBuilder(this)
-                      .setTitle(R.string.change_language)
-                      .setItems(languages) { _, which ->
-                          val localeCode = if (which == 0) "it" else "en"
-                          AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeCode))
-                          recreate()
-                      }
-                      .setNegativeButton(R.string.close, null)
-                      .show()
-              }
-
-              private fun showCreatorDialog() {
-                  MaterialAlertDialogBuilder(this)
-                      .setTitle(R.string.about_creator)
-                      .setMessage("Questa bellissima app e stata creata con passione da Imran Dzaferi per organizzare automaticamente ogni foto e video di Google Takeout!")
-                      .setIcon(R.drawable.ic_check_circle)
-                      .setPositiveButton("OK", null)
-                      .show()
-              }
-
-              override fun onResume() {
-                  super.onResume()
-                  checkAndRefreshPermissionDialog()
-              }
-
-              override fun onStart() {
-                  super.onStart()
-                  val filter = IntentFilter().apply {
-                      addAction(FixerService.ACTION_PROGRESS)
-                      addAction(FixerService.ACTION_LOG)
-                      addAction(FixerService.ACTION_COMPLETED)
-                      addAction(FixerService.ACTION_ERROR)
-                  }
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                      registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-                  } else {
-                      registerReceiver(receiver, filter)
-                  }
-              }
-
-              override fun onStop() {
-                  super.onStop()
-                  unregisterReceiver(receiver)
-              }
-          }
-          EOF
-
-          cat << 'EOF' > app/src/main/java/com/takeout/fixer/FixerService.kt
-          package com.takeout.fixer
+      - name: Generate Kotlin Sources (TakeoutFixerService.kt & MainActivity.kt)
+        run: |
+          cat << 'EOF' > app/src/main/java/com/imrandzaferi/takeoutfixer/TakeoutFixerService.kt
+          package com.imrandzaferi.takeoutfixer
 
           import android.app.Notification
           import android.app.NotificationChannel
@@ -1628,185 +1095,132 @@ jobs:
           import android.app.Service
           import android.content.Context
           import android.content.Intent
+          import android.content.pm.ServiceInfo
           import android.net.Uri
           import android.os.Build
           import android.os.IBinder
           import android.os.PowerManager
           import androidx.core.app.NotificationCompat
           import androidx.exifinterface.media.ExifInterface
-          import kotlinx.coroutines.*
+          import kotlinx.coroutines.CoroutineScope
+          import kotlinx.coroutines.Dispatchers
+          import kotlinx.coroutines.SupervisorJob
+          import kotlinx.coroutines.cancel
+          import kotlinx.coroutines.launch
           import org.json.JSONObject
-          import java.io.*
+          import java.io.BufferedOutputStream
+          import java.io.ByteArrayOutputStream
+          import java.io.File
+          import java.io.FileInputStream
+          import java.io.FileOutputStream
           import java.text.SimpleDateFormat
-          import java.util.*
+          import java.util.Date
+          import java.util.Locale
+          import java.util.TimeZone
           import java.util.zip.ZipEntry
           import java.util.zip.ZipInputStream
           import java.util.zip.ZipOutputStream
-          import kotlin.math.abs
 
-          class FixerService : Service() {
+          data class GooglePhotoMeta(
+              val timestampSec: Long,
+              val latitude: Double?,
+              val longitude: Double?,
+              val description: String?
+          )
 
-              private val serviceJob = Job()
-              private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
-              private var wakeLock: PowerManager.WakeLock? = null
+          class TakeoutFixerService : Service() {
 
               companion object {
-                  const val CHANNEL_ID = "takeout_fixer_fg_channel"
-                  const val NOTIF_ID = 2001
-
-                  const val ACTION_START = "ACTION_START"
-                  const val ACTION_PROGRESS = "com.takeout.fixer.ACTION_PROGRESS"
-                  const val ACTION_COMPLETED = "com.takeout.fixer.ACTION_COMPLETED"
-                  const val ACTION_ERROR = "com.takeout.fixer.ACTION_ERROR"
-                  const val ACTION_LOG = "com.takeout.fixer.ACTION_LOG"
-
-                  const val EXTRA_INPUT_URI = "EXTRA_INPUT_URI"
-                  const val EXTRA_OUTPUT_URI = "EXTRA_OUTPUT_URI"
-                  const val EXTRA_PROGRESS = "EXTRA_PROGRESS"
-                  const val EXTRA_STATUS = "EXTRA_STATUS"
-                  const val EXTRA_MESSAGE = "EXTRA_MESSAGE"
-                  const val EXTRA_STATS = "EXTRA_STATS"
+                  const val ACTION_START = "com.imrandzaferi.takeoutfixer.START"
+                  const val ACTION_PROGRESS = "com.imrandzaferi.takeoutfixer.PROGRESS"
+                  const val EXTRA_INPUT_URI = "extra_input_uri"
+                  const val EXTRA_OUTPUT_URI = "extra_output_uri"
+                  const val EXTRA_PROGRESS = "extra_progress"
+                  const val EXTRA_LOG = "extra_log"
+                  private const val CHANNEL_ID = "takeout_fixer_channel"
+                  private const val NOTIF_ID = 1001
               }
+
+              private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+              private var wakeLock: PowerManager.WakeLock? = null
 
               override fun onBind(intent: Intent?): IBinder? = null
 
               override fun onCreate() {
                   super.onCreate()
                   createNotificationChannel()
-                  val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-                  wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TakeoutFixer::ProcessingWakeLock")
               }
 
               override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
                   if (intent?.action == ACTION_START) {
-                      val inUri = intent.getParcelableExtra<Uri>(EXTRA_INPUT_URI)
-                      val outUri = intent.getParcelableExtra<Uri>(EXTRA_OUTPUT_URI)
-                      if (inUri != null && outUri != null) {
-                          startForeground(NOTIF_ID, buildForegroundNotification(0, "Inizializzazione Takeout Fixer v9..."))
-                          wakeLock?.acquire(240 * 60 * 1000L)
+                      val inputUriStr = intent.getStringExtra(EXTRA_INPUT_URI)
+                      val outputUriStr = intent.getStringExtra(EXTRA_OUTPUT_URI)
+                      if (inputUriStr != null && outputUriStr != null) {
+                          startForegroundWithType(buildNotification("Avvio motore Takeout...", 0))
+                          acquireWakeLock()
                           serviceScope.launch {
-                              processZip(inUri, outUri)
+                              processTakeoutArchive(Uri.parse(inputUriStr), Uri.parse(outputUriStr))
+                              releaseWakeLock()
+                              stopForeground(STOP_FOREGROUND_REMOVE)
+                              stopSelf()
                           }
-                      } else {
-                          stopSelf()
                       }
                   }
                   return START_NOT_STICKY
               }
 
-              private fun createNotificationChannel() {
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                      val channel = NotificationChannel(
-                          CHANNEL_ID,
-                          "Elaborazione Takeout (Background)",
-                          NotificationManager.IMPORTANCE_LOW
-                      ).apply {
-                          description = "Mantiene l app attiva in background durante l elaborazione"
-                      }
-                      val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                      manager.createNotificationChannel(channel)
+              private fun startForegroundWithType(notification: Notification) {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                      startForeground(
+                          NOTIF_ID,
+                          notification,
+                          ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                      )
+                  } else {
+                      startForeground(NOTIF_ID, notification)
                   }
               }
 
-              private fun buildForegroundNotification(progress: Int, status: String): Notification {
-                  return NotificationCompat.Builder(this, CHANNEL_ID)
-                      .setSmallIcon(android.R.drawable.stat_sys_download)
-                      .setContentTitle("Takeout Fixer in esecuzione")
-                      .setContentText(status)
-                      .setProgress(100, progress, false)
-                      .setOngoing(true)
-                      .setOnlyAlertOnce(true)
-                      .build()
-              }
-
-              private fun notifyProgress(pct: Int, status: String) {
-                  val notifManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                  notifManager.notify(NOTIF_ID, buildForegroundNotification(pct, status))
-
-                  val intent = Intent(ACTION_PROGRESS).apply {
-                      putExtra(EXTRA_PROGRESS, pct)
-                      putExtra(EXTRA_STATUS, status)
-                      setPackage(packageName)
+              private fun acquireWakeLock() {
+                  val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                  wakeLock = pm.newWakeLock(
+                      PowerManager.PARTIAL_WAKE_LOCK,
+                      "TakeoutFixerStudio::EngineWakeLock"
+                  ).apply {
+                      acquire(60 * 60 * 1000L)
                   }
-                  sendBroadcast(intent)
               }
 
-              private fun sendLog(msg: String) {
-                  val intent = Intent(ACTION_LOG).apply {
-                      putExtra(EXTRA_MESSAGE, msg)
-                      setPackage(packageName)
+              private fun releaseWakeLock() {
+                  wakeLock?.let {
+                      if (it.isHeld) it.release()
                   }
-                  sendBroadcast(intent)
+                  wakeLock = null
               }
 
-              private fun sendDoneNotification(title: String, message: String) {
-                  val notifManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                  val notif = NotificationCompat.Builder(this, CHANNEL_ID)
-                      .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                      .setContentTitle(title)
-                      .setContentText(message)
-                      .setPriority(NotificationCompat.PRIORITY_HIGH)
-                      .setAutoCancel(true)
-                      .build()
-                  notifManager.notify(2002, notif)
-              }
-
-              private fun findJsonForMedia(mediaFile: File): File? {
-                  val parent = mediaFile.parentFile ?: return null
-                  val name = mediaFile.name
-                  val stem = mediaFile.nameWithoutExtension
-                  val ext = mediaFile.extension
-
-                  val children = parent.listFiles() ?: return null
-                  for (f in children) {
-                      if (f.name.startsWith("$name.") && f.name.endsWith(".json")) return f
-                  }
-                  val direct = File(parent, "$stem.json")
-                  if (direct.exists()) return direct
-
-                  if (stem.contains("(") && stem.endsWith(")")) {
-                      val idx = stem.lastIndexOf("(")
-                      val base = stem.substring(0, idx)
-                      val num = stem.substring(idx)
-                      val swapped = File(parent, "$base.$ext$num.json")
-                      if (swapped.exists()) return swapped
-                  }
-                  return null
-              }
-
-              private fun convertToRationalLatLon(deg: Double): String {
-                  val d = abs(deg)
-                  val degrees = d.toInt()
-                  val minutesFloat = (d - degrees) * 60
-                  val minutes = minutesFloat.toInt()
-                  val seconds = ((minutesFloat - minutes) * 60 * 10000).toInt()
-                  return "$degrees/1,$minutes/1,$seconds/10000"
-              }
-
-              private suspend fun processZip(inUri: Uri, outUri: Uri) {
-                  val workDir = File(cacheDir, "takeout_work_${System.currentTimeMillis()}")
-                  workDir.mkdirs()
-
-                  val yearStats = mutableMapOf<String, Int>()
-                  var gpsCount = 0
-
+              private fun processTakeoutArchive(inputUri: Uri, outputUri: Uri) {
                   try {
-                      notifyProgress(5, "1/3 Decompressione archivio Takeout...")
-                      sendLog("Decompressione in streaming su memoria interna...")
+                      emitUpdate(2, "[INFO] Scansione preliminare metadati JSON in corso...")
+                      val metadataMap = HashMap<String, GooglePhotoMeta>()
+                      var mediaCount = 0
 
-                      contentResolver.openInputStream(inUri)?.use { rawIn ->
-                          ZipInputStream(BufferedInputStream(rawIn)).use { zis ->
+                      // Pass 1: Read JSON sidecars and count media files
+                      contentResolver.openInputStream(inputUri)?.use { rawIn ->
+                          ZipInputStream(rawIn).use { zis ->
                               var entry: ZipEntry? = zis.nextEntry
-                              val buffer = ByteArray(65536)
                               while (entry != null) {
                                   if (!entry.isDirectory) {
-                                      val outFile = File(workDir, entry.name)
-                                      outFile.parentFile?.mkdirs()
-                                      FileOutputStream(outFile).use { fos ->
-                                          var len: Int
-                                          while (zis.read(buffer).also { len = it } > 0) {
-                                              fos.write(buffer, 0, len)
+                                      val name = entry.name
+                                      val baseName = File(name).name
+                                      if (baseName.endsWith(".json", ignoreCase = true)) {
+                                          val jsonBytes = readCurrentEntryBytes(zis)
+                                          val parsed = parseGoogleJson(String(jsonBytes, Charsets.UTF_8))
+                                          if (parsed != null) {
+                                              val cleanKey = normalizeJsonTargetKey(baseName)
+                                              metadataMap[cleanKey] = parsed
                                           }
+                                      } else {
+                                          mediaCount++
                                       }
                                   }
                                   zis.closeEntry()
@@ -1815,169 +1229,836 @@ jobs:
                           }
                       }
 
-                      notifyProgress(35, "2/3 Applicazione metadati e cartelle Anno Mese...")
-                      val allFiles = workDir.walkTopDown().filter { it.isFile && !it.name.endsWith(".json", true) }.toList()
-                      val total = allFiles.size
-                      var merged = 0
+                      emitUpdate(15, "[OK] Metadati JSON indicizzati: ${metadataMap.size} | File multimediali: $mediaCount")
 
+                      if (mediaCount == 0) {
+                          emitUpdate(100, "[WARN] Nessun file multimediale trovato nello ZIP.")
+                          return
+                      }
+
+                      var processedMedia = 0
                       val exifDateFormat = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US).apply {
                           timeZone = TimeZone.getDefault()
                       }
-                      val folderDateFormat = SimpleDateFormat("yyyy/MM - MMMM", Locale.ITALIAN).apply {
-                          timeZone = TimeZone.getDefault()
-                      }
-                      val yearFormat = SimpleDateFormat("yyyy", Locale.US).apply {
+                      val folderDateFormat = SimpleDateFormat("yyyy/MM", Locale.US).apply {
                           timeZone = TimeZone.getDefault()
                       }
 
-                      val targetPathMap = mutableMapOf<File, String>()
+                      // Pass 2: Stream media files, inject EXIF, group into YYYY/MM, exclude JSONs
+                      contentResolver.openInputStream(inputUri)?.use { rawIn ->
+                          contentResolver.openOutputStream(outputUri)?.use { rawOut ->
+                              ZipInputStream(rawIn).use { zis ->
+                                  ZipOutputStream(BufferedOutputStream(rawOut)).use { zos ->
+                                      val usedZipPaths = HashSet<String>()
+                                      var entry: ZipEntry? = zis.nextEntry
 
-                      for ((index, mediaFile) in allFiles.withIndex()) {
-                          val jsonFile = findJsonForMedia(mediaFile)
-                          var takenTime = mediaFile.lastModified()
+                                      while (entry != null) {
+                                          if (!entry.isDirectory) {
+                                              val entryName = entry.name
+                                              val fileName = File(entryName).name
 
-                          if (jsonFile != null && jsonFile.exists()) {
-                              try {
-                                  val jsonObj = JSONObject(jsonFile.readText())
-                                  val ts = jsonObj.optJSONObject("photoTakenTime")?.optString("timestamp", "0")?.toLongOrNull() ?: 0L
-                                  val geo = jsonObj.optJSONObject("geoData")
-                                  val lat = geo?.optDouble("latitude", 0.0) ?: 0.0
-                                  val lon = geo?.optDouble("longitude", 0.0) ?: 0.0
-                                  val desc = jsonObj.optString("description", "")
+                                              if (!fileName.endsWith(".json", ignoreCase = true)) {
+                                                  processedMedia++
+                                                  val meta = metadataMap[fileName.lowercase(Locale.ROOT)]
+                                                  val ext = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
+                                                  val isExifSupported = ext == "jpg" || ext == "jpeg" || ext == "webp"
 
-                                  if (ts > 0) takenTime = ts * 1000
+                                                  val tempFile = File(cacheDir, "temp_media_${System.currentTimeMillis()}_$fileName")
+                                                  FileOutputStream(tempFile).use { fos ->
+                                                      zis.copyTo(fos, 8192)
+                                                  }
 
-                                  val ext = mediaFile.extension.lowercase()
-                                  if (ext == "jpg" || ext == "jpeg" || ext == "webp") {
-                                      val exif = ExifInterface(mediaFile)
-                                      if (ts > 0) {
-                                          val dateStr = exifDateFormat.format(Date(takenTime))
-                                          exif.setAttribute(ExifInterface.TAG_DATETIME, dateStr)
-                                          exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, dateStr)
-                                          exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, dateStr)
+                                                  var finalTimestampMs = if (meta != null && meta.timestampSec > 0) {
+                                                      meta.timestampSec * 1000L
+                                                  } else if (entry.time > 0) {
+                                                      entry.time
+                                                  } else {
+                                                      System.currentTimeMillis()
+                                                  }
+
+                                                  if (isExifSupported) {
+                                                      try {
+                                                          val exif = ExifInterface(tempFile.absolutePath)
+                                                          if (meta != null) {
+                                                              val formattedDate = exifDateFormat.format(Date(finalTimestampMs))
+                                                              exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, formattedDate)
+                                                              exif.setAttribute(ExifInterface.TAG_DATETIME, formattedDate)
+                                                              exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, formattedDate)
+
+                                                              if (meta.latitude != null && meta.longitude != null &&
+                                                                  (meta.latitude != 0.0 || meta.longitude != 0.0)
+                                                              ) {
+                                                                  exif.setLatLong(meta.latitude, meta.longitude)
+                                                              }
+                                                              if (!meta.description.isNullOrBlank()) {
+                                                                  exif.setAttribute(
+                                                                      ExifInterface.TAG_IMAGE_DESCRIPTION,
+                                                                      meta.description
+                                                                  )
+                                                              }
+                                                              exif.saveAttributes()
+                                                          } else {
+                                                              val existingDate = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                                                              if (existingDate != null) {
+                                                                  runCatching {
+                                                                      exifDateFormat.parse(existingDate)?.time?.let {
+                                                                          finalTimestampMs = it
+                                                                      }
+                                                                  }
+                                                              }
+                                                          }
+                                                      } catch (e: Exception) {
+                                                          emitUpdate(
+                                                              calculateProgress(processedMedia, mediaCount),
+                                                              "[WARN] EXIF non applicato su $fileName: ${e.message}"
+                                                          )
+                                                      }
+                                                  }
+
+                                                  val yearMonthFolder = folderDateFormat.format(Date(finalTimestampMs))
+                                                  var targetZipPath = "$yearMonthFolder/$fileName"
+                                                  var counter = 1
+                                                  while (usedZipPaths.contains(targetZipPath)) {
+                                                      val nameNoExt = fileName.substringBeforeLast('.')
+                                                      val dotExt = if (ext.isNotEmpty()) ".$ext" else ""
+                                                      targetZipPath = "$yearMonthFolder/${nameNoExt}_$counter$dotExt"
+                                                      counter++
+                                                  }
+                                                  usedZipPaths.add(targetZipPath)
+
+                                                  val newEntry = ZipEntry(targetZipPath).apply {
+                                                      time = finalTimestampMs
+                                                  }
+                                                  zos.putNextEntry(newEntry)
+                                                  FileInputStream(tempFile).use { fis ->
+                                                      fis.copyTo(zos, 8192)
+                                                  }
+                                                  zos.closeEntry()
+                                                  tempFile.delete()
+
+                                                  val pct = calculateProgress(processedMedia, mediaCount)
+                                                  updateNotification("Elaborato $processedMedia / $mediaCount", pct)
+                                                  emitUpdate(pct, "[OK] -> $targetZipPath")
+                                              }
+                                          }
+                                          zis.closeEntry()
+                                          entry = zis.nextEntry
                                       }
-                                      if (lat != 0.0 || lon != 0.0) {
-                                          exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, convertToRationalLatLon(lat))
-                                          exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, if (lat >= 0) "N" else "S")
-                                          exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, convertToRationalLatLon(lon))
-                                          exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, if (lon >= 0) "E" else "W")
-                                          gpsCount++
-                                      }
-                                      if (desc.isNotEmpty()) {
-                                          exif.setAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION, desc)
-                                      }
-                                      exif.saveAttributes()
                                   }
-
-                                  if (ts > 0) mediaFile.setLastModified(takenTime)
-                                  merged++
-                              } catch (e: Exception) {
-                                  sendLog("JSON ignorato per ${mediaFile.name}: ${e.message}")
                               }
                           }
-
-                          val dateObj = Date(takenTime)
-                          val folderName = folderDateFormat.format(dateObj)
-                          val yearStr = yearFormat.format(dateObj)
-                          yearStats[yearStr] = (yearStats[yearStr] ?: 0) + 1
-
-                          targetPathMap[mediaFile] = "$folderName/${mediaFile.name}"
-
-                          if (index % 25 == 0 || index == total - 1) {
-                              val pct = 35 + ((index + 1) * 35 / total.coerceAtLeast(1))
-                              notifyProgress(pct, "2/3 Metadati e cartelle: ${index + 1}/$total")
-                          }
                       }
 
-                      notifyProgress(70, "3/3 Compressione ZIP finale...")
-                      sendLog("Compressione e ottimizzazione finale...")
-
-                      contentResolver.openOutputStream(outUri)?.use { rawOut ->
-                          ZipOutputStream(BufferedOutputStream(rawOut)).use { zos ->
-                              val buffer = ByteArray(65536)
-                              for ((index, mediaFile) in allFiles.withIndex()) {
-                                  val relPath = targetPathMap[mediaFile] ?: mediaFile.name
-                                  val zipEntry = ZipEntry(relPath).apply {
-                                      time = mediaFile.lastModified()
-                                  }
-                                  zos.putNextEntry(zipEntry)
-                                  FileInputStream(mediaFile).use { fis ->
-                                      var len: Int
-                                      while (fis.read(buffer).also { len = it } > 0) {
-                                          zos.write(buffer, 0, len)
-                                      }
-                                  }
-                                  zos.closeEntry()
-
-                                  if (index % 25 == 0 || index == total - 1) {
-                                      val pct = 70 + ((index + 1) * 30 / total.coerceAtLeast(1))
-                                      notifyProgress(pct, "3/3 Compressione ZIP: ${index + 1}/$total")
-                                  }
-                              }
-                          }
-                      }
-
-                      notifyProgress(100, "Elaborazione completata!")
-                      sendDoneNotification("Takeout Fixer", "Completato: $merged file uniti e organizzati!")
-
-                      val statsBuilder = StringBuilder()
-                      statsBuilder.append("Totale file multimediali: $total\n")
-                      statsBuilder.append("Metadati JSON abbinati: $merged\n")
-                      statsBuilder.append("Foto con coordinate GPS: $gpsCount\n\n")
-                      statsBuilder.append("Ripartizione per Anno:\n")
-                      yearStats.toList().sortedByDescending { it.first }.forEach { (anno, count) ->
-                          statsBuilder.append("Anno $anno: $count file\n")
-                      }
-
-                      val compIntent = Intent(ACTION_COMPLETED).apply {
-                          putExtra(EXTRA_STATS, statsBuilder.toString())
-                          setPackage(packageName)
-                      }
-                      sendBroadcast(compIntent)
-
+                      emitUpdate(100, "[COMPLETATO] Archivio ZIP pulito creato con successo ($processedMedia file).")
                   } catch (e: Exception) {
-                      notifyProgress(0, "Errore durante l elaborazione")
-                      sendLog("ERRORE: ${e.message}")
-                      sendDoneNotification("Takeout Fixer", "Errore: ${e.message}")
-
-                      val errIntent = Intent(ACTION_ERROR).apply {
-                          putExtra(EXTRA_MESSAGE, e.message ?: "Errore sconosciuto")
-                          setPackage(packageName)
-                      }
-                      sendBroadcast(errIntent)
-                  } finally {
-                      workDir.deleteRecursively()
-                      if (wakeLock?.isHeld == true) wakeLock?.release()
-                      stopForeground(STOP_FOREGROUND_REMOVE)
-                      stopSelf()
+                      emitUpdate(100, "[ERRORE] ${e.localizedMessage ?: "Errore imprevisto"}")
                   }
               }
 
+              private fun calculateProgress(done: Int, total: Int): Int {
+                  return (15 + ((done.toFloat() / total.toFloat()) * 85f)).toInt().coerceIn(15, 100)
+              }
+
+              private fun normalizeJsonTargetKey(jsonFileName: String): String {
+                  var cleaned = jsonFileName.removeSuffix(".json").removeSuffix(".JSON")
+                  cleaned = cleaned.replace(".supplemental-metadata", "", ignoreCase = true)
+                  return cleaned.lowercase(Locale.ROOT)
+              }
+
+              private fun parseGoogleJson(jsonString: String): GooglePhotoMeta? {
+                  return try {
+                      val root = JSONObject(jsonString)
+                      val timestampSec = root.optJSONObject("photoTakenTime")
+                          ?.optString("timestamp", "0")?.toLongOrNull() ?: 0L
+                      val geo = root.optJSONObject("geoData")
+                      val lat = geo?.optDouble("latitude", 0.0)
+                      val lon = geo?.optDouble("longitude", 0.0)
+                      val desc = root.optString("description", "").takeIf { it.isNotEmpty() }
+                      GooglePhotoMeta(timestampSec, lat, lon, desc)
+                  } catch (e: Exception) {
+                      null
+                  }
+              }
+
+              private fun readCurrentEntryBytes(zis: ZipInputStream): ByteArray {
+                  val baos = ByteArrayOutputStream()
+                  val buffer = ByteArray(4096)
+                  var count: Int
+                  while (zis.read(buffer).also { count = it } != -1) {
+                      baos.write(buffer, 0, count)
+                  }
+                  return baos.toByteArray()
+              }
+
+              private fun emitUpdate(progress: Int, logLine: String) {
+                  val intent = Intent(ACTION_PROGRESS).apply {
+                      setPackage(packageName)
+                      putExtra(EXTRA_PROGRESS, progress)
+                      putExtra(EXTRA_LOG, logLine)
+                  }
+                  sendBroadcast(intent)
+              }
+
+              private fun createNotificationChannel() {
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      val channel = NotificationChannel(
+                          CHANNEL_ID,
+                          "Takeout Fixer Background Service",
+                          NotificationManager.IMPORTANCE_LOW
+                      )
+                      val nm = getSystemService(NotificationManager::class.java)
+                      nm.createNotificationChannel(channel)
+                  }
+              }
+
+              private fun buildNotification(text: String, progress: Int): Notification {
+                  return NotificationCompat.Builder(this, CHANNEL_ID)
+                      .setContentTitle("Takeout Fixer Studio")
+                      .setContentText(text)
+                      .setSmallIcon(android.R.drawable.stat_sys_download)
+                      .setOngoing(true)
+                      .setProgress(100, progress, false)
+                      .build()
+              }
+
+              private fun updateNotification(text: String, progress: Int) {
+                  val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                  nm.notify(NOTIF_ID, buildNotification(text, progress))
+              }
+
               override fun onDestroy() {
+                  releaseWakeLock()
+                  serviceScope.cancel()
                   super.onDestroy()
-                  serviceJob.cancel()
-                  if (wakeLock?.isHeld == true) wakeLock?.release()
               }
           }
           EOF
 
-      - name: Configura Java 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+          cat << 'EOF' > app/src/main/java/com/imrandzaferi/takeoutfixer/MainActivity.kt
+          package com.imrandzaferi.takeoutfixer
 
-      - name: Configura Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.4'
-          cache-disabled: true
+          import android.Manifest
+          import android.app.Dialog
+          import android.content.BroadcastReceiver
+          import android.content.Context
+          import android.content.Intent
+          import android.content.IntentFilter
+          import android.content.pm.PackageManager
+          import android.graphics.Bitmap
+          import android.graphics.BitmapFactory
+          import android.graphics.Canvas
+          import android.graphics.Color
+          import android.graphics.ColorMatrix
+          import android.graphics.ColorMatrixColorFilter
+          import android.graphics.Matrix
+          import android.graphics.Paint
+          import android.graphics.drawable.ColorDrawable
+          import android.media.MediaCodec
+          import android.media.MediaExtractor
+          import android.media.MediaFormat
+          import android.media.MediaMuxer
+          import android.net.Uri
+          import android.os.Build
+          import android.os.Bundle
+          import android.os.PowerManager
+          import android.provider.Settings
+          import android.view.View
+          import android.view.Window
+          import android.widget.Button
+          import android.widget.ImageButton
+          import android.widget.ImageView
+          import android.widget.ProgressBar
+          import android.widget.ScrollView
+          import android.widget.TextView
+          import android.widget.Toast
+          import androidx.activity.result.contract.ActivityResultContracts
+          import androidx.appcompat.app.AlertDialog
+          import androidx.appcompat.app.AppCompatActivity
+          import androidx.appcompat.app.AppCompatDelegate
+          import androidx.core.content.ContextCompat
+          import androidx.core.os.LocaleListCompat
+          import androidx.lifecycle.lifecycleScope
+          import com.google.android.material.bottomsheet.BottomSheetDialog
+          import kotlinx.coroutines.Dispatchers
+          import kotlinx.coroutines.launch
+          import kotlinx.coroutines.withContext
+          import java.io.File
+          import java.nio.ByteBuffer
 
-      - name: Compila APK
-        run: gradle assembleDebug --no-daemon
+          class MainActivity : AppCompatActivity() {
 
-      - name: Carica APK pronto
+              private lateinit var layoutTabTakeout: ScrollView
+              private lateinit var layoutTabConverter: ScrollView
+              private lateinit var layoutTabEditor: ScrollView
+
+              private lateinit var btnNavTakeout: Button
+              private lateinit var btnNavConverter: Button
+              private lateinit var btnNavEditor: Button
+
+              // Tab 1 Views
+              private lateinit var tvSelectedZip: TextView
+              private lateinit var tvSelectedOutputZip: TextView
+              private lateinit var progressTakeout: ProgressBar
+              private lateinit var tvProgressPercent: TextView
+              private lateinit var tvConsoleLog: TextView
+              private lateinit var scrollConsole: ScrollView
+
+              // Tab 2 Views
+              private lateinit var tvSelectedMedia: TextView
+              private lateinit var progressConverter: ProgressBar
+              private lateinit var tvConverterStatus: TextView
+
+              // Tab 3 Views
+              private lateinit var ivEditorPreview: ImageView
+
+              private var selectedInputZipUri: Uri? = null
+              private var selectedOutputZipUri: Uri? = null
+              private var selectedMediaUri: Uri? = null
+
+              private var originalBitmap: Bitmap? = null
+              private var workingBitmap: Bitmap? = null
+
+              private var permissionsDialog: Dialog? = null
+              private var dialogTvNotifStatus: TextView? = null
+              private var dialogTvBatteryStatus: TextView? = null
+              private var dialogBtnNotif: Button? = null
+              private var dialogBtnBattery: Button? = null
+
+              private val prefs by lazy {
+                  getSharedPreferences("takeout_fixer_prefs", Context.MODE_PRIVATE)
+              }
+
+              private val notificationPermissionLauncher =
+                  registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+                      refreshPermissionDialogState()
+                  }
+
+              private val pickInputZipLauncher =
+                  registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                      uri?.let {
+                          selectedInputZipUri = it
+                          tvSelectedZip.text = it.lastPathSegment ?: it.toString()
+                          appendLog("[INPUT] Archivio selezionato: ${tvSelectedZip.text}")
+                      }
+                  }
+
+              private val createOutputZipLauncher =
+                  registerForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+                      uri?.let {
+                          selectedOutputZipUri = it
+                          tvSelectedOutputZip.text = it.lastPathSegment ?: it.toString()
+                          appendLog("[OUTPUT] Destinazione impostata: ${tvSelectedOutputZip.text}")
+                      }
+                  }
+
+              private val pickMediaLauncher =
+                  registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                      uri?.let {
+                          selectedMediaUri = it
+                          tvSelectedMedia.text = it.lastPathSegment ?: it.toString()
+                          tvConverterStatus.text = "File pronto: ${tvSelectedMedia.text}"
+                      }
+                  }
+
+              private val createAudioOutputLauncher =
+                  registerForActivityResult(ActivityResultContracts.CreateDocument("audio/mp4")) { uri ->
+                      uri?.let { outUri ->
+                          val inUri = selectedMediaUri
+                          if (inUri != null) {
+                              extractOrConvertAudio(inUri, outUri)
+                          }
+                      }
+                  }
+
+              private val pickImageLauncher =
+                  registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                      uri?.let { loadBitmapFromUri(it) }
+                  }
+
+              private val saveEditedImageLauncher =
+                  registerForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
+                      uri?.let { saveCurrentBitmapToUri(it) }
+                  }
+
+              private val pickDefaultFolderLauncher =
+                  registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+                      uri?.let {
+                          prefs.edit().putString("default_folder_uri", it.toString()).apply()
+                          Toast.makeText(this, "Cartella salvata: ${it.lastPathSegment}", Toast.LENGTH_SHORT).show()
+                      }
+                  }
+
+              private val progressReceiver = object : BroadcastReceiver() {
+                  override fun onReceive(context: Context?, intent: Intent?) {
+                      if (intent?.action == TakeoutFixerService.ACTION_PROGRESS) {
+                          val prog = intent.getIntExtra(TakeoutFixerService.EXTRA_PROGRESS, 0)
+                          val logLine = intent.getStringExtra(TakeoutFixerService.EXTRA_LOG) ?: ""
+                          progressTakeout.progress = prog
+                          tvProgressPercent.text = "$prog%"
+                          if (logLine.isNotEmpty()) {
+                              appendLog(logLine)
+                          }
+                      }
+                  }
+              }
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  applySavedTheme()
+                  super.onCreate(savedInstanceState)
+                  setContentView(R.layout.activity_main)
+
+                  bindViews()
+                  setupNavigation()
+                  setupTakeoutTab()
+                  setupConverterTab()
+                  setupEditorTab()
+
+                  findViewById<ImageButton>(R.id.btnSettingsMenu).setOnClickListener {
+                      showGlassSettingsSheet()
+                  }
+
+                  checkAndShowPermissionsModal()
+              }
+
+              override fun onResume() {
+                  super.onResume()
+                  val filter = IntentFilter(TakeoutFixerService.ACTION_PROGRESS)
+                  ContextCompat.registerReceiver(
+                      this,
+                      progressReceiver,
+                      filter,
+                      ContextCompat.RECEIVER_NOT_EXPORTED
+                  )
+                  refreshPermissionDialogState()
+              }
+
+              override fun onPause() {
+                  super.onPause()
+                  unregisterReceiver(progressReceiver)
+              }
+
+              private fun bindViews() {
+                  layoutTabTakeout = findViewById(R.id.layoutTabTakeout)
+                  layoutTabConverter = findViewById(R.id.layoutTabConverter)
+                  layoutTabEditor = findViewById(R.id.layoutTabEditor)
+
+                  btnNavTakeout = findViewById(R.id.btnNavTakeout)
+                  btnNavConverter = findViewById(R.id.btnNavConverter)
+                  btnNavEditor = findViewById(R.id.btnNavEditor)
+
+                  tvSelectedZip = findViewById(R.id.tvSelectedZip)
+                  tvSelectedOutputZip = findViewById(R.id.tvSelectedOutputZip)
+                  progressTakeout = findViewById(R.id.progressTakeout)
+                  tvProgressPercent = findViewById(R.id.tvProgressPercent)
+                  tvConsoleLog = findViewById(R.id.tvConsoleLog)
+                  scrollConsole = findViewById(R.id.scrollConsole)
+
+                  tvSelectedMedia = findViewById(R.id.tvSelectedMedia)
+                  progressConverter = findViewById(R.id.progressConverter)
+                  tvConverterStatus = findViewById(R.id.tvConverterStatus)
+
+                  ivEditorPreview = findViewById(R.id.ivEditorPreview)
+              }
+
+              private fun setupNavigation() {
+                  val accentColor = ContextCompat.getColor(this, R.color.glass_accent)
+                  val secondaryColor = ContextCompat.getColor(this, R.color.glass_text_secondary)
+
+                  fun selectTab(index: Int) {
+                      layoutTabTakeout.visibility = if (index == 0) View.VISIBLE else View.GONE
+                      layoutTabConverter.visibility = if (index == 1) View.VISIBLE else View.GONE
+                      layoutTabEditor.visibility = if (index == 2) View.VISIBLE else View.GONE
+
+                      btnNavTakeout.setTextColor(if (index == 0) accentColor else secondaryColor)
+                      btnNavConverter.setTextColor(if (index == 1) accentColor else secondaryColor)
+                      btnNavEditor.setTextColor(if (index == 2) accentColor else secondaryColor)
+                  }
+
+                  btnNavTakeout.setOnClickListener { selectTab(0) }
+                  btnNavConverter.setOnClickListener { selectTab(1) }
+                  btnNavEditor.setOnClickListener { selectTab(2) }
+              }
+
+              private fun setupTakeoutTab() {
+                  findViewById<Button>(R.id.btnSelectZip).setOnClickListener {
+                      pickInputZipLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+                  }
+
+                  findViewById<Button>(R.id.btnSelectOutputZip).setOnClickListener {
+                      createOutputZipLauncher.launch("Takeout_Fixed_${System.currentTimeMillis()}.zip")
+                  }
+
+                  findViewById<Button>(R.id.btnStartTakeout).setOnClickListener {
+                      val inUri = selectedInputZipUri
+                      val outUri = selectedOutputZipUri
+                      if (inUri == null || outUri == null) {
+                          Toast.makeText(this, getString(R.string.no_file_selected), Toast.LENGTH_SHORT).show()
+                          return@setOnClickListener
+                      }
+                      progressTakeout.progress = 0
+                      tvProgressPercent.text = "0%"
+                      appendLog("[START] Avvio servizio Foreground con WakeLock...")
+
+                      val serviceIntent = Intent(this, TakeoutFixerService::class.java).apply {
+                          action = TakeoutFixerService.ACTION_START
+                          putExtra(TakeoutFixerService.EXTRA_INPUT_URI, inUri.toString())
+                          putExtra(TakeoutFixerService.EXTRA_OUTPUT_URI, outUri.toString())
+                      }
+                      ContextCompat.startForegroundService(this, serviceIntent)
+                  }
+              }
+
+              private fun appendLog(line: String) {
+                  val current = tvConsoleLog.text.toString()
+                  tvConsoleLog.text = "$current\n$line"
+                  scrollConsole.post {
+                      scrollConsole.fullScroll(View.FOCUS_DOWN)
+                  }
+              }
+
+              private fun setupConverterTab() {
+                  findViewById<Button>(R.id.btnSelectMedia).setOnClickListener {
+                      pickMediaLauncher.launch(arrayOf("video/*", "audio/*"))
+                  }
+
+                  findViewById<Button>(R.id.btnConvertMedia).setOnClickListener {
+                      if (selectedMediaUri == null) {
+                          Toast.makeText(this, getString(R.string.no_file_selected), Toast.LENGTH_SHORT).show()
+                          return@setOnClickListener
+                      }
+                      createAudioOutputLauncher.launch("Extracted_Audio_${System.currentTimeMillis()}.m4a")
+                  }
+              }
+
+              private fun extractOrConvertAudio(inputUri: Uri, outputUri: Uri) {
+                  progressConverter.progress = 10
+                  tvConverterStatus.text = "Estrazione traccia audio in corso..."
+
+                  lifecycleScope.launch(Dispatchers.IO) {
+                      val tempOut = File(cacheDir, "temp_mux_${System.currentTimeMillis()}.m4a")
+                      try {
+                          val pfd = contentResolver.openFileDescriptor(inputUri, "r")
+                              ?: throw IllegalStateException("Impossibile aprire il file sorgente")
+
+                          val extractor = MediaExtractor()
+                          extractor.setDataSource(pfd.fileDescriptor)
+
+                          var audioTrackIndex = -1
+                          for (i in 0 until extractor.trackCount) {
+                              val format = extractor.getTrackFormat(i)
+                              val mime = format.getString(MediaFormat.KEY_MIME) ?: ""
+                              if (mime.startsWith("audio/")) {
+                                  audioTrackIndex = i
+                                  break
+                              }
+                          }
+
+                          if (audioTrackIndex >= 0) {
+                              extractor.selectTrack(audioTrackIndex)
+                              val trackFormat = extractor.getTrackFormat(audioTrackIndex)
+                              val muxer = MediaMuxer(
+                                  tempOut.absolutePath,
+                                  MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4
+                              )
+                              val dstTrack = muxer.addTrack(trackFormat)
+                              muxer.start()
+
+                              val buffer = ByteBuffer.allocate(256 * 1024)
+                              val bufferInfo = MediaCodec.BufferInfo()
+
+                              while (true) {
+                                  val sampleSize = extractor.readSampleData(buffer, 0)
+                                  if (sampleSize < 0) break
+                                  bufferInfo.offset = 0
+                                  bufferInfo.size = sampleSize
+                                  bufferInfo.presentationTimeUs = extractor.sampleTime
+                                  bufferInfo.flags = extractor.sampleFlags
+                                  muxer.writeSampleData(dstTrack, buffer, bufferInfo)
+                                  extractor.advance()
+                              }
+
+                              muxer.stop()
+                              muxer.release()
+                              extractor.release()
+                              pfd.close()
+
+                              contentResolver.openOutputStream(outputUri)?.use { outStream ->
+                                  tempOut.inputStream().use { inStream ->
+                                      inStream.copyTo(outStream)
+                                  }
+                              }
+                          } else {
+                              extractor.release()
+                              pfd.close()
+                              contentResolver.openInputStream(inputUri)?.use { inStream ->
+                                  contentResolver.openOutputStream(outputUri)?.use { outStream ->
+                                      inStream.copyTo(outStream)
+                                  }
+                              }
+                          }
+
+                          tempOut.delete()
+                          withContext(Dispatchers.Main) {
+                              progressConverter.progress = 100
+                              tvConverterStatus.text = "[OK] Esportazione audio completata con successo."
+                          }
+                      } catch (e: Exception) {
+                          tempOut.delete()
+                          withContext(Dispatchers.Main) {
+                              progressConverter.progress = 0
+                              tvConverterStatus.text = "[ERRORE] ${e.localizedMessage}"
+                          }
+                      }
+                  }
+              }
+
+              private fun setupEditorTab() {
+                  findViewById<Button>(R.id.btnSelectImage).setOnClickListener {
+                      pickImageLauncher.launch(arrayOf("image/*"))
+                  }
+
+                  findViewById<Button>(R.id.btnRotateImage).setOnClickListener {
+                      val current = workingBitmap ?: return@setOnClickListener
+                      val matrix = Matrix().apply { postRotate(90f) }
+                      workingBitmap = Bitmap.createBitmap(
+                          current, 0, 0, current.width, current.height, matrix, true
+                      )
+                      ivEditorPreview.setImageBitmap(workingBitmap)
+                  }
+
+                  findViewById<Button>(R.id.btnFilterBw).setOnClickListener {
+                      val current = workingBitmap ?: return@setOnClickListener
+                      val bwBitmap = Bitmap.createBitmap(
+                          current.width,
+                          current.height,
+                          Bitmap.Config.ARGB_8888
+                      )
+                      val canvas = Canvas(bwBitmap)
+                      val cm = ColorMatrix().apply { setSaturation(0f) }
+                      val paint = Paint().apply { colorFilter = ColorMatrixColorFilter(cm) }
+                      canvas.drawBitmap(current, 0f, 0f, paint)
+                      workingBitmap = bwBitmap
+                      ivEditorPreview.setImageBitmap(workingBitmap)
+                  }
+
+                  findViewById<Button>(R.id.btnResetImage).setOnClickListener {
+                      originalBitmap?.let {
+                          workingBitmap = it.copy(Bitmap.Config.ARGB_8888, true)
+                          ivEditorPreview.setImageBitmap(workingBitmap)
+                      }
+                  }
+
+                  findViewById<Button>(R.id.btnSaveImage).setOnClickListener {
+                      if (workingBitmap == null) {
+                          Toast.makeText(this, getString(R.string.no_file_selected), Toast.LENGTH_SHORT).show()
+                          return@setOnClickListener
+                      }
+                      saveEditedImageLauncher.launch("Retouched_${System.currentTimeMillis()}.jpg")
+                  }
+              }
+
+              private fun loadBitmapFromUri(uri: Uri) {
+                  lifecycleScope.launch(Dispatchers.IO) {
+                      try {
+                          contentResolver.openInputStream(uri)?.use { stream ->
+                              val decoded = BitmapFactory.decodeStream(stream)
+                              if (decoded != null) {
+                                  originalBitmap = decoded
+                                  workingBitmap = decoded.copy(Bitmap.Config.ARGB_8888, true)
+                                  withContext(Dispatchers.Main) {
+                                      ivEditorPreview.setImageBitmap(workingBitmap)
+                                  }
+                              }
+                          }
+                      } catch (e: Exception) {
+                          withContext(Dispatchers.Main) {
+                              Toast.makeText(this@MainActivity, "Errore caricamento immagine", Toast.LENGTH_SHORT).show()
+                          }
+                      }
+                  }
+              }
+
+              private fun saveCurrentBitmapToUri(uri: Uri) {
+                  val bmp = workingBitmap ?: return
+                  lifecycleScope.launch(Dispatchers.IO) {
+                      try {
+                          contentResolver.openOutputStream(uri)?.use { out ->
+                              bmp.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                          }
+                          withContext(Dispatchers.Main) {
+                              Toast.makeText(this@MainActivity, "Immagine JPG esportata!", Toast.LENGTH_SHORT).show()
+                          }
+                      } catch (e: Exception) {
+                          withContext(Dispatchers.Main) {
+                              Toast.makeText(this@MainActivity, "Errore salvataggio JPG", Toast.LENGTH_SHORT).show()
+                          }
+                      }
+                  }
+              }
+
+              private fun isNotificationPermGranted(): Boolean {
+                  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      ContextCompat.checkSelfPermission(
+                          this,
+                          Manifest.permission.POST_NOTIFICATIONS
+                      ) == PackageManager.PERMISSION_GRANTED
+                  } else {
+                      true
+                  }
+              }
+
+              private fun isBatteryOptimizationIgnored(): Boolean {
+                  val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                  return pm.isIgnoringBatteryOptimizations(packageName)
+              }
+
+              private fun checkAndShowPermissionsModal() {
+                  if (isNotificationPermGranted() && isBatteryOptimizationIgnored()) {
+                      return
+                  }
+
+                  val dialog = Dialog(this)
+                  dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+                  dialog.setContentView(R.layout.dialog_glass_permissions)
+                  dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                  dialog.setCancelable(false)
+
+                  dialogTvNotifStatus = dialog.findViewById(R.id.tvPermNotificationStatus)
+                  dialogTvBatteryStatus = dialog.findViewById(R.id.tvPermBatteryStatus)
+                  dialogBtnNotif = dialog.findViewById(R.id.btnPermNotifications)
+                  dialogBtnBattery = dialog.findViewById(R.id.btnPermBattery)
+
+                  dialogBtnNotif?.setOnClickListener {
+                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                          notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                      } else {
+                          refreshPermissionDialogState()
+                      }
+                  }
+
+                  dialogBtnBattery?.setOnClickListener {
+                      try {
+                          val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                              data = Uri.parse("package:$packageName")
+                          }
+                          startActivity(intent)
+                      } catch (e: Exception) {
+                          val fallback = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                          startActivity(fallback)
+                      }
+                  }
+
+                  dialog.findViewById<Button>(R.id.btnPermClose).setOnClickListener {
+                      dialog.dismiss()
+                  }
+
+                  permissionsDialog = dialog
+                  refreshPermissionDialogState()
+                  dialog.show()
+              }
+
+              private fun refreshPermissionDialogState() {
+                  val dialog = permissionsDialog ?: return
+                  if (!dialog.isShowing && isNotificationPermGranted() && isBatteryOptimizationIgnored()) {
+                      return
+                  }
+
+                  val notifOk = isNotificationPermGranted()
+                  val battOk = isBatteryOptimizationIgnored()
+
+                  val okColor = ContextCompat.getColor(this, R.color.status_ok)
+                  val warnColor = ContextCompat.getColor(this, R.color.status_warn)
+
+                  dialogTvNotifStatus?.apply {
+                      text = if (notifOk) getString(R.string.perm_granted) else getString(R.string.perm_missing)
+                      setTextColor(if (notifOk) okColor else warnColor)
+                  }
+                  dialogBtnNotif?.isEnabled = !notifOk
+
+                  dialogTvBatteryStatus?.apply {
+                      text = if (battOk) getString(R.string.perm_granted) else getString(R.string.perm_missing)
+                      setTextColor(if (battOk) okColor else warnColor)
+                  }
+                  dialogBtnBattery?.isEnabled = !battOk
+
+                  if (notifOk && battOk) {
+                      dialog.dismiss()
+                      permissionsDialog = null
+                  }
+              }
+
+              private fun showGlassSettingsSheet() {
+                  val sheet = BottomSheetDialog(this)
+                  val view = layoutInflater.inflate(R.layout.layout_glass_sheet, null)
+                  sheet.setContentView(view)
+                  sheet.window?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+                      ?.setBackgroundColor(Color.TRANSPARENT)
+
+                  val tvFolder = view.findViewById<TextView>(R.id.tvCurrentDefaultFolder)
+                  val savedFolder = prefs.getString("default_folder_uri", null)
+                  if (!savedFolder.isNullOrEmpty()) {
+                      tvFolder.text = savedFolder
+                  }
+
+                  view.findViewById<Button>(R.id.btnSettingDefaultFolder).setOnClickListener {
+                      pickDefaultFolderLauncher.launch(null)
+                      sheet.dismiss()
+                  }
+
+                  view.findViewById<Button>(R.id.btnThemeSystem).setOnClickListener {
+                      saveAndApplyTheme(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                      sheet.dismiss()
+                  }
+
+                  view.findViewById<Button>(R.id.btnThemeLight).setOnClickListener {
+                      saveAndApplyTheme(AppCompatDelegate.MODE_NIGHT_NO)
+                      sheet.dismiss()
+                  }
+
+                  view.findViewById<Button>(R.id.btnThemeDark).setOnClickListener {
+                      saveAndApplyTheme(AppCompatDelegate.MODE_NIGHT_YES)
+                      sheet.dismiss()
+                  }
+
+                  view.findViewById<Button>(R.id.btnLangIt).setOnClickListener {
+                      AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("it"))
+                      sheet.dismiss()
+                  }
+
+                  view.findViewById<Button>(R.id.btnLangEn).setOnClickListener {
+                      AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en"))
+                      sheet.dismiss()
+                  }
+
+                  view.findViewById<Button>(R.id.btnSettingAuthor).setOnClickListener {
+                      sheet.dismiss()
+                      AlertDialog.Builder(this)
+                          .setTitle(getString(R.string.author_dialog_title))
+                          .setMessage(getString(R.string.author_dialog_message))
+                          .setPositiveButton(getString(R.string.ok_btn), null)
+                          .show()
+                  }
+
+                  sheet.show()
+              }
+
+              private fun saveAndApplyTheme(mode: Int) {
+                  prefs.edit().putInt("theme_mode", mode).apply()
+                  AppCompatDelegate.setDefaultNightMode(mode)
+              }
+
+              private fun applySavedTheme() {
+                  val mode = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                  AppCompatDelegate.setDefaultNightMode(mode)
+              }
+          }
+          EOF
+
+      - name: Compile Debug APK with Gradle
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TakeoutFixer-APK-v9
+          name: Takeout-Fixer-Studio-v1.0-Pro-Debug
           path: app/build/outputs/apk/debug/app-debug.apk
