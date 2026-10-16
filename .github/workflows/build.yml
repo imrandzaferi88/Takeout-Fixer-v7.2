@@ -38,7 +38,7 @@ jobs:
           mkdir -p app/src/main/res/values-night
           mkdir -p app/src/main/res/values-en
 
-          cat << 'EOF' > settings.gradle
+          cat << 'EOF' | sed 's/^          //' > settings.gradle
           pluginManagement {
               repositories {
                   google()
@@ -57,21 +57,21 @@ jobs:
           include ':app'
           EOF
 
-          cat << 'EOF' > build.gradle
+          cat << 'EOF' | sed 's/^          //' > build.gradle
           plugins {
               id 'com.android.application' version '8.2.0' apply false
               id 'org.jetbrains.kotlin.android' version '1.9.20' apply false
           }
           EOF
 
-          cat << 'EOF' > gradle.properties
+          cat << 'EOF' | sed 's/^          //' > gradle.properties
           org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
           android.useAndroidX=true
           android.nonTransitiveRClass=true
           kotlin.code.style=official
           EOF
 
-          cat << 'EOF' > app/build.gradle
+          cat << 'EOF' | sed 's/^          //' > app/build.gradle
           plugins {
               id 'com.android.application'
               id 'org.jetbrains.kotlin.android'
@@ -111,6 +111,8 @@ jobs:
           dependencies {
               implementation 'androidx.core:core-ktx:1.12.0'
               implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.activity:activity-ktx:1.8.2'
+              implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
               implementation 'com.google.android.material:material:1.11.0'
               implementation 'androidx.exifinterface:exifinterface:1.3.7'
               implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
@@ -119,7 +121,7 @@ jobs:
 
       - name: Generate AndroidManifest.xml
         run: |
-          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -158,9 +160,9 @@ jobs:
           </manifest>
           EOF
 
-      - name: Generate Liquid Glass Drawables and Values (Day & Night + Localization)
+      - name: Generate Liquid Glass Drawables and Values
         run: |
-          cat << 'EOF' > app/src/main/res/values/colors.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/values/colors.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <color name="liquid_bg_start">#DCEEFF</color>
@@ -180,7 +182,7 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/res/values-night/colors.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/values-night/colors.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <color name="liquid_bg_start">#04060A</color>
@@ -200,7 +202,7 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/res/values/themes.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/values/themes.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="Theme.TakeoutFixerStudio" parent="Theme.Material3.DayNight.NoActionBar">
@@ -212,7 +214,7 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/res/values-night/themes.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/values-night/themes.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <style name="Theme.TakeoutFixerStudio" parent="Theme.Material3.DayNight.NoActionBar">
@@ -224,7 +226,7 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_liquid_gradient.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/drawable/bg_liquid_gradient.xml
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android"
               android:shape="rectangle">
@@ -237,7 +239,7 @@ jobs:
           </shape>
           EOF
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_glass_card.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/drawable/bg_glass_card.xml
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android"
               android:shape="rectangle">
@@ -249,7 +251,7 @@ jobs:
           </shape>
           EOF
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_glass_pill.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/drawable/bg_glass_pill.xml
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android"
               android:shape="rectangle">
@@ -261,7 +263,7 @@ jobs:
           </shape>
           EOF
 
-          cat << 'EOF' > app/src/main/res/drawable/bg_console_box.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/drawable/bg_console_box.xml
           <?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android"
               android:shape="rectangle">
@@ -273,7 +275,7 @@ jobs:
           </shape>
           EOF
 
-          cat << 'EOF' > app/src/main/res/values/strings.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/values/strings.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">Takeout Fixer Studio</string>
@@ -326,7 +328,7 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/res/values-en/strings.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/values-en/strings.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">Takeout Fixer Studio</string>
@@ -379,17 +381,17 @@ jobs:
           </resources>
           EOF
 
-      - name: Generate XML Layouts (Main UI, Permissions Modal, Settings BottomSheet)
+      - name: Generate XML Layouts
         run: |
-          cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/layout/activity_main.xml
           <?xml version="1.0" encoding="utf-8"?>
           <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="@drawable/bg_liquid_gradient"
               android:paddingTop="16dp">
 
-              <!-- Top Header Bar -->
               <RelativeLayout
                   android:id="@+id/headerBar"
                   android:layout_width="match_parent"
@@ -434,10 +436,9 @@ jobs:
                       android:background="@drawable/bg_glass_pill"
                       android:contentDescription="@string/settings_title"
                       android:src="@android:drawable/ic_menu_more"
-                      android:tint="@color/glass_text_primary" />
+                      app:tint="@color/glass_text_primary" />
               </RelativeLayout>
 
-              <!-- Content Container -->
               <FrameLayout
                   android:id="@+id/contentContainer"
                   android:layout_width="match_parent"
@@ -445,7 +446,6 @@ jobs:
                   android:layout_above="@+id/bottomGlassBar"
                   android:layout_below="@id/headerBar">
 
-                  <!-- TAB 1: TAKEOUT -->
                   <ScrollView
                       android:id="@+id/layoutTabTakeout"
                       android:layout_width="match_parent"
@@ -575,7 +575,6 @@ jobs:
                       </LinearLayout>
                   </ScrollView>
 
-                  <!-- TAB 2: MEDIA CONVERTER -->
                   <ScrollView
                       android:id="@+id/layoutTabConverter"
                       android:layout_width="match_parent"
@@ -657,7 +656,6 @@ jobs:
                       </LinearLayout>
                   </ScrollView>
 
-                  <!-- TAB 3: IMAGE EDITOR -->
                   <ScrollView
                       android:id="@+id/layoutTabEditor"
                       android:layout_width="match_parent"
@@ -774,7 +772,6 @@ jobs:
                   </ScrollView>
               </FrameLayout>
 
-              <!-- Floating Glass Bottom Bar -->
               <LinearLayout
                   android:id="@+id/bottomGlassBar"
                   android:layout_width="match_parent"
@@ -822,7 +819,7 @@ jobs:
           </RelativeLayout>
           EOF
 
-          cat << 'EOF' > app/src/main/res/layout/dialog_glass_permissions.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/layout/dialog_glass_permissions.xml
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
@@ -847,7 +844,6 @@ jobs:
                   android:textColor="@color/glass_text_secondary"
                   android:textSize="13sp" />
 
-              <!-- Step 1: Notifications -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
@@ -888,7 +884,6 @@ jobs:
                       android:textColor="@color/glass_accent_text" />
               </LinearLayout>
 
-              <!-- Step 2: Battery Optimization -->
               <LinearLayout
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
@@ -941,7 +936,7 @@ jobs:
           </LinearLayout>
           EOF
 
-          cat << 'EOF' > app/src/main/res/layout/layout_glass_sheet.xml
+          cat << 'EOF' | sed 's/^          //' > app/src/main/res/layout/layout_glass_sheet.xml
           <?xml version="1.0" encoding="utf-8"?>
           <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
@@ -958,7 +953,6 @@ jobs:
                   android:textSize="20sp"
                   android:textStyle="bold" />
 
-              <!-- 1. Default Folder -->
               <TextView
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
@@ -985,7 +979,6 @@ jobs:
                   android:text="@string/setting_folder_btn"
                   android:textColor="@color/glass_accent_text" />
 
-              <!-- 2. Appearance & Theme -->
               <TextView
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
@@ -1034,7 +1027,6 @@ jobs:
                       android:textSize="12sp" />
               </LinearLayout>
 
-              <!-- 3. Language -->
               <TextView
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
@@ -1070,7 +1062,6 @@ jobs:
                       android:textColor="@color/glass_accent_text" />
               </LinearLayout>
 
-              <!-- 4. Author Credits -->
               <Button
                   android:id="@+id/btnSettingAuthor"
                   android:layout_width="match_parent"
@@ -1084,9 +1075,9 @@ jobs:
           </LinearLayout>
           EOF
 
-      - name: Generate Kotlin Sources (TakeoutFixerService.kt & MainActivity.kt)
+      - name: Generate Kotlin Sources
         run: |
-          cat << 'EOF' > app/src/main/java/com/imrandzaferi/takeoutfixer/TakeoutFixerService.kt
+          cat << 'EOF' | sed 's/^          //' > app/src/main/java/com/imrandzaferi/takeoutfixer/TakeoutFixerService.kt
           package com.imrandzaferi.takeoutfixer
 
           import android.app.Notification
@@ -1204,7 +1195,6 @@ jobs:
                       val metadataMap = HashMap<String, GooglePhotoMeta>()
                       var mediaCount = 0
 
-                      // Pass 1: Read JSON sidecars and count media files
                       contentResolver.openInputStream(inputUri)?.use { rawIn ->
                           ZipInputStream(rawIn).use { zis ->
                               var entry: ZipEntry? = zis.nextEntry
@@ -1244,7 +1234,6 @@ jobs:
                           timeZone = TimeZone.getDefault()
                       }
 
-                      // Pass 2: Stream media files, inject EXIF, group into YYYY/MM, exclude JSONs
                       contentResolver.openInputStream(inputUri)?.use { rawIn ->
                           contentResolver.openOutputStream(outputUri)?.use { rawOut ->
                               ZipInputStream(rawIn).use { zis ->
@@ -1434,7 +1423,7 @@ jobs:
           }
           EOF
 
-          cat << 'EOF' > app/src/main/java/com/imrandzaferi/takeoutfixer/MainActivity.kt
+          cat << 'EOF' | sed 's/^          //' > app/src/main/java/com/imrandzaferi/takeoutfixer/MainActivity.kt
           package com.imrandzaferi.takeoutfixer
 
           import android.Manifest
@@ -1495,7 +1484,6 @@ jobs:
               private lateinit var btnNavConverter: Button
               private lateinit var btnNavEditor: Button
 
-              // Tab 1 Views
               private lateinit var tvSelectedZip: TextView
               private lateinit var tvSelectedOutputZip: TextView
               private lateinit var progressTakeout: ProgressBar
@@ -1503,12 +1491,10 @@ jobs:
               private lateinit var tvConsoleLog: TextView
               private lateinit var scrollConsole: ScrollView
 
-              // Tab 2 Views
               private lateinit var tvSelectedMedia: TextView
               private lateinit var progressConverter: ProgressBar
               private lateinit var tvConverterStatus: TextView
 
-              // Tab 3 Views
               private lateinit var ivEditorPreview: ImageView
 
               private var selectedInputZipUri: Uri? = null
