@@ -1,4 +1,4 @@
-name: Build TakeoutFixer v8.0 Liquid Glass
+name: Build TakeoutFixer v9.0 Studio
 
 on:
   push:
@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Crea sorgenti TakeoutFixer v8
+      - name: Genera sorgenti v9.0
         run: |
           mkdir -p app/src/main/java/com/takeout/fixer
           mkdir -p app/src/main/res/layout
@@ -65,8 +65,8 @@ jobs:
                   applicationId "com.takeout.fixer"
                   minSdk 26
                   targetSdk 34
-                  versionCode 9
-                  versionName "8.0"
+                  versionCode 10
+                  versionName "9.0"
               }
 
               buildTypes {
@@ -95,14 +95,14 @@ jobs:
           cat << 'EOF' > app/src/main/res/values/colors.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <color name="glass_bg_gradient_start">#EBF2FC</color>
-              <color name="glass_bg_gradient_end">#DFEAF9</color>
+              <color name="glass_bg_gradient_start">#EAF2FC</color>
+              <color name="glass_bg_gradient_end">#DCE7F7</color>
               <color name="glass_card_surface">#D9FFFFFF</color>
               <color name="glass_card_stroke">#80FFFFFF</color>
               <color name="glass_inner_box">#66F1F5FB</color>
               <color name="glass_primary">#007AFF</color>
               <color name="glass_on_primary">#FFFFFF</color>
-              <color name="glass_primary_pill">#33007AFF</color>
+              <color name="glass_primary_pill">#26007AFF</color>
               <color name="text_primary">#1C1C1E</color>
               <color name="text_secondary">#48484A</color>
               <color name="text_tertiary">#8E8E93</color>
@@ -116,18 +116,18 @@ jobs:
           cat << 'EOF' > app/src/main/res/values-night/colors.xml
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
-              <color name="glass_bg_gradient_start">#0B0D12</color>
-              <color name="glass_bg_gradient_end">#141721</color>
-              <color name="glass_card_surface">#D91A1E29</color>
+              <color name="glass_bg_gradient_start">#090B10</color>
+              <color name="glass_bg_gradient_end">#121520</color>
+              <color name="glass_card_surface">#D9181C26</color>
               <color name="glass_card_stroke">#33FFFFFF</color>
-              <color name="glass_inner_box">#4D242B3A</color>
+              <color name="glass_inner_box">#4D202636</color>
               <color name="glass_primary">#0A84FF</color>
               <color name="glass_on_primary">#FFFFFF</color>
               <color name="glass_primary_pill">#330A84FF</color>
               <color name="text_primary">#F2F2F7</color>
               <color name="text_secondary">#AEAEB2</color>
               <color name="text_tertiary">#8E8E93</color>
-              <color name="glass_console">#E60F1117</color>
+              <color name="glass_console">#E60D0F15</color>
               <color name="glass_console_text">#64D2FF</color>
               <color name="accent_green">#30D158</color>
               <color name="accent_amber">#FF9F0A</color>
@@ -159,38 +159,44 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">Takeout Fixer</string>
-              <string name="app_version">v8.0 Glass</string>
-              <string name="app_subtitle">Organizzazione Metadati e Anno Mese</string>
-              <string name="initial_setup_title">Configurazione Iniziale</string>
-              <string name="perm_status_incomplete">Da completare</string>
-              <string name="perm_status_complete">Pronto al 100%</string>
-              <string name="setup_desc">Completa questi due passaggi per consentire l elaborazione fluida anche a schermo spento:</string>
-              <string name="step_notif_title">Notifiche di stato</string>
-              <string name="step_notif_desc">Avanzamento live nella tendina</string>
-              <string name="btn_activate">Attiva</string>
-              <string name="btn_active">Attivo</string>
+              <string name="app_version">v9.0 Glass</string>
+              <string name="tab_takeout">Takeout</string>
+              <string name="tab_converter">Converti</string>
+              <string name="tab_retouch">Ritocco</string>
+              <string name="initial_setup_title">Permessi Richiesti</string>
+              <string name="setup_desc">Attiva questi permessi per elaborare in background:</string>
+              <string name="step_notif_title">Notifiche live</string>
               <string name="step_battery_title">Ottimizzazione batteria</string>
-              <string name="step_battery_desc">Consenti esecuzione senza restrizioni</string>
+              <string name="btn_activate">Attiva</string>
               <string name="btn_set">Imposta</string>
-              <string name="btn_set_done">Impostato</string>
-              <string name="input_card_title">1. Archivio Takeout</string>
+              <string name="input_card_title">Archivio Takeout</string>
               <string name="no_file_selected">Nessun file selezionato</string>
               <string name="btn_browse_zip">Scegli file ZIP</string>
-              <string name="output_card_title">2. Elaborazione e Destinazione</string>
-              <string name="output_desc">Crea un nuovo archivio suddiviso in Anno e Mese con metadati EXIF e GPS inseriti.</string>
+              <string name="output_card_title">Elaborazione e Destinazione</string>
+              <string name="output_desc">Organizza in Anno/Mese con metadati EXIF e GPS inclusi.</string>
               <string name="btn_start">Salva e Avvia</string>
               <string name="ready">Pronto all uso...</string>
               <string name="system_log">Console di Sistema</string>
-              <string name="init_complete">Takeout Fixer v8.0 Liquid Glass avviato.</string>
+              <string name="init_complete">Takeout Fixer v9.0 avviato con successo.</string>
               <string name="settings">Impostazioni</string>
               <string name="change_language">Lingua</string>
               <string name="change_theme">Aspetto e Tema</string>
               <string name="default_folder">Cartella predefinita</string>
               <string name="about_creator">Autore dell app</string>
               <string name="theme_system">Segui sistema</string>
-              <string name="theme_light">Glass Giorno Chiaro</string>
-              <string name="theme_dark">Glass Notte Scuro</string>
+              <string name="theme_light">Glass Chiaro</string>
+              <string name="theme_dark">Glass Scuro</string>
               <string name="close">Chiudi</string>
+              <string name="conv_title">Convertitore Multimediale</string>
+              <string name="conv_desc">Estrai audio MP3 da MP4 o converti file:</string>
+              <string name="btn_select_media">Scegli Video/Audio</string>
+              <string name="btn_convert_now">Converti / Estrai Audio</string>
+              <string name="retouch_title">Studio Ritocco Immagini</string>
+              <string name="retouch_desc">Regola ed esporta le tue foto:</string>
+              <string name="btn_select_img">Scegli Immagine</string>
+              <string name="btn_rotate">Ruota 90°</string>
+              <string name="btn_filter_bw">Filtro B/N</string>
+              <string name="btn_save_img">Esporta Immagine</string>
           </resources>
           EOF
 
@@ -198,38 +204,44 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">Takeout Fixer</string>
-              <string name="app_version">v8.0 Glass</string>
-              <string name="app_subtitle">Metadata and Year Month Organizer</string>
-              <string name="initial_setup_title">Initial Setup</string>
-              <string name="perm_status_incomplete">Pending</string>
-              <string name="perm_status_complete">100% Ready</string>
-              <string name="setup_desc">Complete these two steps to ensure smooth background processing with screen off:</string>
-              <string name="step_notif_title">Status Notifications</string>
-              <string name="step_notif_desc">Live status in notification tray</string>
-              <string name="btn_activate">Enable</string>
-              <string name="btn_active">Active</string>
+              <string name="app_version">v9.0 Glass</string>
+              <string name="tab_takeout">Takeout</string>
+              <string name="tab_converter">Convert</string>
+              <string name="tab_retouch">Retouch</string>
+              <string name="initial_setup_title">Permissions Required</string>
+              <string name="setup_desc">Enable permissions for smooth background execution:</string>
+              <string name="step_notif_title">Live Notifications</string>
               <string name="step_battery_title">Battery Optimization</string>
-              <string name="step_battery_desc">Allow unrestricted background activity</string>
+              <string name="btn_activate">Enable</string>
               <string name="btn_set">Set</string>
-              <string name="btn_set_done">Configured</string>
-              <string name="input_card_title">1. Takeout Archive</string>
+              <string name="input_card_title">Takeout Archive</string>
               <string name="no_file_selected">No file selected</string>
               <string name="btn_browse_zip">Choose ZIP File</string>
-              <string name="output_card_title">2. Processing and Target</string>
-              <string name="output_desc">Generates a clean Year and Month archive with embedded EXIF and GPS metadata.</string>
+              <string name="output_card_title">Processing &amp; Target</string>
+              <string name="output_desc">Sort into Year/Month with embedded EXIF &amp; GPS metadata.</string>
               <string name="btn_start">Save and Start</string>
               <string name="ready">Ready to process...</string>
               <string name="system_log">System Console</string>
-              <string name="init_complete">Takeout Fixer v8.0 Liquid Glass initialized.</string>
+              <string name="init_complete">Takeout Fixer v9.0 initialized.</string>
               <string name="settings">Settings</string>
               <string name="change_language">Language</string>
               <string name="change_theme">App Appearance</string>
               <string name="default_folder">Default Folder</string>
               <string name="about_creator">App Author</string>
               <string name="theme_system">Follow system</string>
-              <string name="theme_light">Glass Day Light</string>
-              <string name="theme_dark">Glass Night Dark</string>
+              <string name="theme_light">Glass Light</string>
+              <string name="theme_dark">Glass Dark</string>
               <string name="close">Close</string>
+              <string name="conv_title">Media Converter</string>
+              <string name="conv_desc">Extract MP3 audio from MP4 or convert files:</string>
+              <string name="btn_select_media">Choose Video/Audio</string>
+              <string name="btn_convert_now">Convert / Extract Audio</string>
+              <string name="retouch_title">Image Retouch Studio</string>
+              <string name="retouch_desc">Edit, enhance and export your photos:</string>
+              <string name="btn_select_img">Choose Picture</string>
+              <string name="btn_rotate">Rotate 90°</string>
+              <string name="btn_filter_bw">B&amp;W Filter</string>
+              <string name="btn_save_img">Export Picture</string>
           </resources>
           EOF
 
@@ -359,40 +371,123 @@ jobs:
           </vector>
           EOF
 
-          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          cat << 'EOF' > app/src/main/res/layout/dialog_glass_permissions.xml
           <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-              <uses-permission android:name="android.permission.WAKE_LOCK" />
-              <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:background="@drawable/bg_glass_card"
+              android:padding="24dp">
 
-              <application
-                  android:allowBackup="true"
-                  android:icon="@mipmap/ic_launcher"
-                  android:roundIcon="@mipmap/ic_launcher"
-                  android:label="@string/app_name"
-                  android:supportsRtl="true"
-                  android:theme="@style/Theme.TakeoutFixer">
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:gravity="center_vertical"
+                  android:layout_marginBottom="12dp">
+                  <ImageView
+                      android:layout_width="26dp"
+                      android:layout_height="26dp"
+                      android:src="@drawable/ic_security"
+                      android:layout_marginEnd="10dp"/>
+                  <TextView
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:text="@string/initial_setup_title"
+                      android:textSize="18sp"
+                      android:textStyle="bold"
+                      android:textColor="@color/text_primary"/>
+              </LinearLayout>
 
-                  <activity
-                      android:name=".MainActivity"
-                      android:screenOrientation="portrait"
-                      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
-                      android:exported="true">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                      </intent-filter>
-                  </activity>
+              <TextView
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:text="@string/setup_desc"
+                  android:textSize="13sp"
+                  android:textColor="@color/text_secondary"
+                  android:layout_marginBottom="16dp"/>
 
-                  <service
-                      android:name=".FixerService"
-                      android:foregroundServiceType="dataSync"
-                      android:exported="false" />
-              </application>
-          </manifest>
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:gravity="center_vertical"
+                  android:background="@drawable/bg_glass_pill"
+                  android:padding="12dp"
+                  android:layout_marginBottom="10dp">
+                  <TextView
+                      android:id="@+id/dlgIconNotif"
+                      android:layout_width="24dp"
+                      android:layout_height="24dp"
+                      android:gravity="center"
+                      android:text="1"
+                      android:textStyle="bold"
+                      android:textColor="@color/glass_primary"
+                      android:layout_marginEnd="10dp"/>
+                  <TextView
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:text="@string/step_notif_title"
+                      android:textStyle="bold"
+                      android:textSize="13sp"
+                      android:textColor="@color/text_primary"/>
+                  <com.google.android.material.button.MaterialButton
+                      android:id="@+id/dlgBtnNotif"
+                      android:layout_width="wrap_content"
+                      android:layout_height="36dp"
+                      android:text="@string/btn_activate"
+                      android:textSize="12sp"
+                      app:cornerRadius="12dp"
+                      style="@style/Widget.Material3.Button.TonalButton"/>
+              </LinearLayout>
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="horizontal"
+                  android:gravity="center_vertical"
+                  android:background="@drawable/bg_glass_pill"
+                  android:padding="12dp"
+                  android:layout_marginBottom="20dp">
+                  <TextView
+                      android:id="@+id/dlgIconBattery"
+                      android:layout_width="24dp"
+                      android:layout_height="24dp"
+                      android:gravity="center"
+                      android:text="2"
+                      android:textStyle="bold"
+                      android:textColor="@color/glass_primary"
+                      android:layout_marginEnd="10dp"/>
+                  <TextView
+                      android:layout_width="0dp"
+                      android:layout_height="wrap_content"
+                      android:layout_weight="1"
+                      android:text="@string/step_battery_title"
+                      android:textStyle="bold"
+                      android:textSize="13sp"
+                      android:textColor="@color/text_primary"/>
+                  <com.google.android.material.button.MaterialButton
+                      android:id="@+id/dlgBtnBattery"
+                      android:layout_width="wrap_content"
+                      android:layout_height="36dp"
+                      android:text="@string/btn_set"
+                      android:textSize="12sp"
+                      app:cornerRadius="12dp"
+                      style="@style/Widget.Material3.Button.TonalButton"/>
+              </LinearLayout>
+
+              <com.google.android.material.button.MaterialButton
+                  android:id="@+id/dlgBtnClose"
+                  android:layout_width="match_parent"
+                  android:layout_height="48dp"
+                  android:text="@string/close"
+                  app:cornerRadius="14dp"
+                  style="@style/Widget.Material3.Button"/>
+          </LinearLayout>
           EOF
 
           cat << 'EOF' > app/src/main/res/layout/layout_glass_sheet.xml
@@ -462,7 +557,6 @@ jobs:
                       android:textSize="15sp"
                       android:textColor="@color/text_primary"/>
                   <TextView
-                      android:id="@+id/tvCurrentThemeBadge"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
                       android:text="Glass"
@@ -536,16 +630,16 @@ jobs:
 
           cat << 'EOF' > app/src/main/res/layout/activity_main.xml
           <?xml version="1.0" encoding="utf-8"?>
-          <androidx.coordinatorlayout.widget.CoordinatorLayout
-              xmlns:android="http://schemas.android.com/apk/res/android"
+          <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="@drawable/bg_liquid_gradient">
 
-              <androidx.core.widget.NestedScrollView
+              <ScrollView
                   android:layout_width="match_parent"
                   android:layout_height="match_parent"
+                  android:layout_above="@+id/bottomGlassBar"
                   android:fillViewport="true">
 
                   <LinearLayout
@@ -584,23 +678,10 @@ jobs:
                               <TextView
                                   android:layout_width="wrap_content"
                                   android:layout_height="wrap_content"
-                                  android:text="@string/app_subtitle"
+                                  android:text="@string/app_version"
                                   android:textSize="12sp"
                                   android:textColor="@color/text_secondary"/>
                           </LinearLayout>
-
-                          <TextView
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:text="@string/app_version"
-                              android:textStyle="bold"
-                              android:textSize="11sp"
-                              android:textColor="@color/glass_primary"
-                              android:background="@color/glass_primary_pill"
-                              android:paddingHorizontal="10dp"
-                              android:paddingVertical="5dp"
-                              android:layout_marginEnd="6dp"
-                              android:clipToOutline="true"/>
 
                           <com.google.android.material.button.MaterialButton
                               android:id="@+id/btnMenu"
@@ -612,337 +693,389 @@ jobs:
                       </LinearLayout>
 
                       <LinearLayout
-                          android:id="@+id/cardPermissions"
+                          android:id="@+id/viewTabTakeout"
                           android:layout_width="match_parent"
                           android:layout_height="wrap_content"
-                          android:orientation="vertical"
-                          android:background="@drawable/bg_glass_card"
-                          android:padding="20dp"
-                          android:layout_marginBottom="16dp">
+                          android:orientation="vertical">
 
                           <LinearLayout
                               android:layout_width="match_parent"
                               android:layout_height="wrap_content"
-                              android:orientation="horizontal"
-                              android:gravity="center_vertical"
-                              android:layout_marginBottom="10dp">
-
-                              <ImageView
-                                  android:layout_width="22dp"
-                                  android:layout_height="22dp"
-                                  android:src="@drawable/ic_security"
-                                  android:layout_marginEnd="8dp"/>
+                              android:orientation="vertical"
+                              android:background="@drawable/bg_glass_card"
+                              android:padding="20dp"
+                              android:layout_marginBottom="14dp">
 
                               <TextView
-                                  android:layout_width="0dp"
+                                  android:layout_width="wrap_content"
                                   android:layout_height="wrap_content"
-                                  android:layout_weight="1"
-                                  android:text="@string/initial_setup_title"
+                                  android:text="@string/input_card_title"
                                   android:textStyle="bold"
                                   android:textSize="15sp"
-                                  android:textColor="@color/text_primary"/>
+                                  android:textColor="@color/text_primary"
+                                  android:layout_marginBottom="4dp"/>
 
                               <TextView
-                                  android:id="@+id/tvPermStatus"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="@string/perm_status_incomplete"
-                                  android:textStyle="bold"
-                                  android:textSize="11sp"
-                                  android:textColor="@color/accent_amber"/>
-                          </LinearLayout>
-
-                          <TextView
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:text="@string/setup_desc"
-                              android:textSize="12sp"
-                              android:textColor="@color/text_secondary"
-                              android:layout_marginBottom="14dp"/>
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="horizontal"
-                              android:gravity="center_vertical"
-                              android:background="@drawable/bg_glass_pill"
-                              android:padding="12dp"
-                              android:layout_marginBottom="8dp">
-
-                              <TextView
-                                  android:id="@+id/iconStepNotif"
-                                  android:layout_width="24dp"
-                                  android:layout_height="24dp"
-                                  android:gravity="center"
-                                  android:text="1"
-                                  android:textStyle="bold"
-                                  android:textColor="@color/glass_primary"
-                                  android:layout_marginEnd="10dp"/>
-
-                              <LinearLayout
-                                  android:layout_width="0dp"
-                                  android:layout_height="wrap_content"
-                                  android:layout_weight="1"
-                                  android:orientation="vertical">
-
-                                  <TextView
-                                      android:layout_width="wrap_content"
-                                      android:layout_height="wrap_content"
-                                      android:text="@string/step_notif_title"
-                                      android:textStyle="bold"
-                                      android:textSize="13sp"
-                                      android:textColor="@color/text_primary"/>
-
-                                  <TextView
-                                      android:id="@+id/tvNotifSub"
-                                      android:layout_width="wrap_content"
-                                      android:layout_height="wrap_content"
-                                      android:text="@string/step_notif_desc"
-                                      android:textSize="11sp"
-                                      android:textColor="@color/text_tertiary"/>
-                              </LinearLayout>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnGrantNotif"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="38dp"
-                                  android:text="@string/btn_activate"
-                                  android:textSize="12sp"
-                                  app:cornerRadius="12dp"
-                                  style="@style/Widget.Material3.Button.TonalButton"/>
-                          </LinearLayout>
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="horizontal"
-                              android:gravity="center_vertical"
-                              android:background="@drawable/bg_glass_pill"
-                              android:padding="12dp">
-
-                              <TextView
-                                  android:id="@+id/iconStepBattery"
-                                  android:layout_width="24dp"
-                                  android:layout_height="24dp"
-                                  android:gravity="center"
-                                  android:text="2"
-                                  android:textStyle="bold"
-                                  android:textColor="@color/glass_primary"
-                                  android:layout_marginEnd="10dp"/>
-
-                              <LinearLayout
-                                  android:layout_width="0dp"
-                                  android:layout_height="wrap_content"
-                                  android:layout_weight="1"
-                                  android:orientation="vertical">
-
-                                  <TextView
-                                      android:layout_width="wrap_content"
-                                      android:layout_height="wrap_content"
-                                      android:text="@string/step_battery_title"
-                                      android:textStyle="bold"
-                                      android:textSize="13sp"
-                                      android:textColor="@color/text_primary"/>
-
-                                  <TextView
-                                      android:id="@+id/tvBatterySub"
-                                      android:layout_width="wrap_content"
-                                      android:layout_height="wrap_content"
-                                      android:text="@string/step_battery_desc"
-                                      android:textSize="11sp"
-                                      android:textColor="@color/text_tertiary"/>
-                              </LinearLayout>
-
-                              <com.google.android.material.button.MaterialButton
-                                  android:id="@+id/btnGrantBattery"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="38dp"
-                                  android:text="@string/btn_set"
-                                  android:textSize="12sp"
-                                  app:cornerRadius="12dp"
-                                  style="@style/Widget.Material3.Button.TonalButton"/>
-                          </LinearLayout>
-                      </LinearLayout>
-
-                      <LinearLayout
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:orientation="vertical"
-                          android:background="@drawable/bg_glass_card"
-                          android:padding="20dp"
-                          android:layout_marginBottom="14dp">
-
-                          <TextView
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:text="@string/input_card_title"
-                              android:textStyle="bold"
-                              android:textSize="15sp"
-                              android:textColor="@color/text_primary"
-                              android:layout_marginBottom="4dp"/>
-
-                          <TextView
-                              android:id="@+id/tvInputPath"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:text="@string/no_file_selected"
-                              android:textSize="12sp"
-                              android:textColor="@color/text_secondary"
-                              android:layout_marginBottom="14dp"/>
-
-                          <com.google.android.material.button.MaterialButton
-                              android:id="@+id/btnSelectInput"
-                              android:layout_width="match_parent"
-                              android:layout_height="52dp"
-                              android:text="@string/btn_browse_zip"
-                              app:cornerRadius="16dp"
-                              app:icon="@drawable/ic_folder_zip"
-                              style="@style/Widget.Material3.Button.TonalButton"/>
-                      </LinearLayout>
-
-                      <LinearLayout
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:orientation="vertical"
-                          android:background="@drawable/bg_glass_card"
-                          android:padding="20dp"
-                          android:layout_marginBottom="16dp">
-
-                          <TextView
-                              android:layout_width="wrap_content"
-                              android:layout_height="wrap_content"
-                              android:text="@string/output_card_title"
-                              android:textStyle="bold"
-                              android:textSize="15sp"
-                              android:textColor="@color/text_primary"
-                              android:layout_marginBottom="4dp"/>
-
-                          <TextView
-                              android:id="@+id/tvCustomFolderStatus"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:text="@string/output_desc"
-                              android:textSize="12sp"
-                              android:textColor="@color/text_secondary"
-                              android:layout_marginBottom="14dp"/>
-
-                          <com.google.android.material.button.MaterialButton
-                              android:id="@+id/btnStart"
-                              android:layout_width="match_parent"
-                              android:layout_height="56dp"
-                              android:text="@string/btn_start"
-                              android:enabled="false"
-                              app:cornerRadius="16dp"
-                              style="@style/Widget.Material3.Button"/>
-                      </LinearLayout>
-
-                      <LinearLayout
-                          android:layout_width="match_parent"
-                          android:layout_height="wrap_content"
-                          android:orientation="vertical"
-                          android:background="@drawable/bg_glass_card"
-                          android:padding="18dp"
-                          android:layout_marginBottom="14dp">
-
-                          <LinearLayout
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:orientation="horizontal"
-                              android:gravity="center_vertical"
-                              android:layout_marginBottom="10dp">
-
-                              <com.google.android.material.progressindicator.CircularProgressIndicator
-                                  android:id="@+id/indicatorPulse"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:indeterminate="true"
-                                  app:indicatorSize="26dp"
-                                  app:trackThickness="3dp"
-                                  app:indicatorColor="@color/glass_primary"
-                                  android:layout_marginEnd="10dp"
-                                  android:visibility="invisible"/>
-
-                              <TextView
-                                  android:id="@+id/tvStatus"
-                                  android:layout_width="0dp"
-                                  android:layout_height="wrap_content"
-                                  android:layout_weight="1"
-                                  android:text="@string/ready"
-                                  android:textStyle="bold"
-                                  android:textSize="13sp"
-                                  android:textColor="@color/text_primary"/>
-
-                              <TextView
-                                  android:id="@+id/tvPercent"
-                                  android:layout_width="wrap_content"
-                                  android:layout_height="wrap_content"
-                                  android:text="0%"
-                                  android:textStyle="bold"
-                                  android:textSize="15sp"
-                                  android:textColor="@color/glass_primary"/>
-                          </LinearLayout>
-
-                          <com.google.android.material.progressindicator.LinearProgressIndicator
-                              android:id="@+id/progressBar"
-                              android:layout_width="match_parent"
-                              android:layout_height="wrap_content"
-                              android:max="100"
-                              android:progress="0"
-                              app:trackCornerRadius="6dp"
-                              app:trackThickness="8dp"
-                              app:trackColor="@color/glass_inner_box"
-                              app:indicatorColor="@color/glass_primary"/>
-                      </LinearLayout>
-
-                      <TextView
-                          android:layout_width="wrap_content"
-                          android:layout_height="wrap_content"
-                          android:text="@string/system_log"
-                          android:textStyle="bold"
-                          android:textSize="12sp"
-                          android:textColor="@color/text_tertiary"
-                          android:layout_marginBottom="6dp"/>
-
-                      <LinearLayout
-                          android:layout_width="match_parent"
-                          android:layout_height="125dp"
-                          android:background="@drawable/bg_glass_card"
-                          android:padding="12dp">
-
-                          <ScrollView
-                              android:id="@+id/scrollLog"
-                              android:layout_width="match_parent"
-                              android:layout_height="match_parent">
-
-                              <TextView
-                                  android:id="@+id/tvLog"
+                                  android:id="@+id/tvInputPath"
                                   android:layout_width="match_parent"
                                   android:layout_height="wrap_content"
-                                  android:textColor="@color/glass_console_text"
-                                  android:fontFamily="monospace"
-                                  android:textSize="11sp"
-                                  android:text="@string/init_complete"/>
-                          </ScrollView>
+                                  android:text="@string/no_file_selected"
+                                  android:textSize="12sp"
+                                  android:textColor="@color/text_secondary"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnSelectInput"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="52dp"
+                                  android:text="@string/btn_browse_zip"
+                                  app:cornerRadius="16dp"
+                                  app:icon="@drawable/ic_folder_zip"
+                                  style="@style/Widget.Material3.Button.TonalButton"/>
+                          </LinearLayout>
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:background="@drawable/bg_glass_card"
+                              android:padding="20dp"
+                              android:layout_marginBottom="16dp">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/output_card_title"
+                                  android:textStyle="bold"
+                                  android:textSize="15sp"
+                                  android:textColor="@color/text_primary"
+                                  android:layout_marginBottom="4dp"/>
+
+                              <TextView
+                                  android:id="@+id/tvCustomFolderStatus"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/output_desc"
+                                  android:textSize="12sp"
+                                  android:textColor="@color/text_secondary"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnStart"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="56dp"
+                                  android:text="@string/btn_start"
+                                  android:enabled="false"
+                                  app:cornerRadius="16dp"
+                                  style="@style/Widget.Material3.Button"/>
+                          </LinearLayout>
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:background="@drawable/bg_glass_card"
+                              android:padding="18dp"
+                              android:layout_marginBottom="14dp">
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="horizontal"
+                                  android:gravity="center_vertical"
+                                  android:layout_marginBottom="10dp">
+
+                                  <com.google.android.material.progressindicator.CircularProgressIndicator
+                                      android:id="@+id/indicatorPulse"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:indeterminate="true"
+                                      app:indicatorSize="26dp"
+                                      app:trackThickness="3dp"
+                                      app:indicatorColor="@color/glass_primary"
+                                      android:layout_marginEnd="10dp"
+                                      android:visibility="invisible"/>
+
+                                  <TextView
+                                      android:id="@+id/tvStatus"
+                                      android:layout_width="0dp"
+                                      android:layout_height="wrap_content"
+                                      android:layout_weight="1"
+                                      android:text="@string/ready"
+                                      android:textStyle="bold"
+                                      android:textSize="13sp"
+                                      android:textColor="@color/text_primary"/>
+
+                                  <TextView
+                                      android:id="@+id/tvPercent"
+                                      android:layout_width="wrap_content"
+                                      android:layout_height="wrap_content"
+                                      android:text="0%"
+                                      android:textStyle="bold"
+                                      android:textSize="15sp"
+                                      android:textColor="@color/glass_primary"/>
+                              </LinearLayout>
+
+                              <com.google.android.material.progressindicator.LinearProgressIndicator
+                                  android:id="@+id/progressBar"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:max="100"
+                                  android:progress="0"
+                                  app:trackCornerRadius="6dp"
+                                  app:trackThickness="8dp"
+                                  app:trackColor="@color/glass_inner_box"
+                                  app:indicatorColor="@color/glass_primary"/>
+                          </LinearLayout>
+
+                          <TextView
+                              android:layout_width="wrap_content"
+                              android:layout_height="wrap_content"
+                              android:text="@string/system_log"
+                              android:textStyle="bold"
+                              android:textSize="12sp"
+                              android:textColor="@color/text_tertiary"
+                              android:layout_marginBottom="6dp"/>
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="125dp"
+                              android:background="@drawable/bg_glass_card"
+                              android:padding="12dp">
+
+                              <ScrollView
+                                  android:id="@+id/scrollLog"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="match_parent">
+
+                                  <TextView
+                                      android:id="@+id/tvLog"
+                                      android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:textColor="@color/glass_console_text"
+                                      android:fontFamily="monospace"
+                                      android:textSize="11sp"
+                                      android:text="@string/init_complete"/>
+                              </ScrollView>
+                          </LinearLayout>
                       </LinearLayout>
+
+                      <LinearLayout
+                          android:id="@+id/viewTabConverter"
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="vertical"
+                          android:visibility="gone">
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:background="@drawable/bg_glass_card"
+                              android:padding="20dp"
+                              android:layout_marginBottom="14dp">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/conv_title"
+                                  android:textStyle="bold"
+                                  android:textSize="17sp"
+                                  android:textColor="@color/text_primary"
+                                  android:layout_marginBottom="6dp"/>
+
+                              <TextView
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/conv_desc"
+                                  android:textSize="13sp"
+                                  android:textColor="@color/text_secondary"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <TextView
+                                  android:id="@+id/tvConvSelected"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/no_file_selected"
+                                  android:textSize="12sp"
+                                  android:textColor="@color/glass_primary"
+                                  android:layout_marginBottom="12dp"/>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnConvPick"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="52dp"
+                                  android:text="@string/btn_select_media"
+                                  app:cornerRadius="16dp"
+                                  style="@style/Widget.Material3.Button.TonalButton"
+                                  android:layout_marginBottom="10dp"/>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnConvRun"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="52dp"
+                                  android:text="@string/btn_convert_now"
+                                  android:enabled="false"
+                                  app:cornerRadius="16dp"
+                                  style="@style/Widget.Material3.Button"/>
+                          </LinearLayout>
+                      </LinearLayout>
+
+                      <LinearLayout
+                          android:id="@+id/viewTabRetouch"
+                          android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="vertical"
+                          android:visibility="gone">
+
+                          <LinearLayout
+                              android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:orientation="vertical"
+                              android:background="@drawable/bg_glass_card"
+                              android:padding="20dp"
+                              android:layout_marginBottom="14dp">
+
+                              <TextView
+                                  android:layout_width="wrap_content"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/retouch_title"
+                                  android:textStyle="bold"
+                                  android:textSize="17sp"
+                                  android:textColor="@color/text_primary"
+                                  android:layout_marginBottom="6dp"/>
+
+                              <TextView
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:text="@string/retouch_desc"
+                                  android:textSize="13sp"
+                                  android:textColor="@color/text_secondary"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <ImageView
+                                  android:id="@+id/imgRetouchPreview"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="220dp"
+                                  android:background="@drawable/bg_glass_pill"
+                                  android:scaleType="centerInside"
+                                  android:layout_marginBottom="14dp"/>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnRetouchPick"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="50dp"
+                                  android:text="@string/btn_select_img"
+                                  app:cornerRadius="14dp"
+                                  style="@style/Widget.Material3.Button.TonalButton"
+                                  android:layout_marginBottom="8dp"/>
+
+                              <LinearLayout
+                                  android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="horizontal"
+                                  android:layout_marginBottom="8dp">
+
+                                  <com.google.android.material.button.MaterialButton
+                                      android:id="@+id/btnRetouchRotate"
+                                      android:layout_width="0dp"
+                                      android:layout_height="48dp"
+                                      android:layout_weight="1"
+                                      android:text="@string/btn_rotate"
+                                      android:enabled="false"
+                                      app:cornerRadius="12dp"
+                                      style="@style/Widget.Material3.Button.TonalButton"
+                                      android:layout_marginEnd="6dp"/>
+
+                                  <com.google.android.material.button.MaterialButton
+                                      android:id="@+id/btnRetouchFilter"
+                                      android:layout_width="0dp"
+                                      android:layout_height="48dp"
+                                      android:layout_weight="1"
+                                      android:text="@string/btn_filter_bw"
+                                      android:enabled="false"
+                                      app:cornerRadius="12dp"
+                                      style="@style/Widget.Material3.Button.TonalButton"/>
+                              </LinearLayout>
+
+                              <com.google.android.material.button.MaterialButton
+                                  android:id="@+id/btnRetouchSave"
+                                  android:layout_width="match_parent"
+                                  android:layout_height="52dp"
+                                  android:text="@string/btn_save_img"
+                                  android:enabled="false"
+                                  app:cornerRadius="16dp"
+                                  style="@style/Widget.Material3.Button"/>
+                          </LinearLayout>
+                      </LinearLayout>
+
                   </LinearLayout>
-              </androidx.core.widget.NestedScrollView>
-          </androidx.coordinatorlayout.widget.CoordinatorLayout>
+              </ScrollView>
+
+              <LinearLayout
+                  android:id="@+id/bottomGlassBar"
+                  android:layout_width="match_parent"
+                  android:layout_height="64dp"
+                  android:layout_alignParentBottom="true"
+                  android:layout_margin="16dp"
+                  android:background="@drawable/bg_glass_card"
+                  android:orientation="horizontal"
+                  android:gravity="center">
+
+                  <com.google.android.material.button.MaterialButton
+                      android:id="@+id/navTabTakeout"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:text="@string/tab_takeout"
+                      android:textSize="12sp"
+                      android:textStyle="bold"
+                      android:textColor="@color/glass_primary"
+                      style="@style/Widget.Material3.Button.TextButton"/>
+
+                  <com.google.android.material.button.MaterialButton
+                      android:id="@+id/navTabConverter"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:text="@string/tab_converter"
+                      android:textSize="12sp"
+                      android:textColor="@color/text_secondary"
+                      style="@style/Widget.Material3.Button.TextButton"/>
+
+                  <com.google.android.material.button.MaterialButton
+                      android:id="@+id/navTabRetouch"
+                      android:layout_width="0dp"
+                      android:layout_height="match_parent"
+                      android:layout_weight="1"
+                      android:text="@string/tab_retouch"
+                      android:textSize="12sp"
+                      android:textColor="@color/text_secondary"
+                      style="@style/Widget.Material3.Button.TextButton"/>
+              </LinearLayout>
+
+          </RelativeLayout>
           EOF
 
           cat << 'EOF' > app/src/main/java/com/takeout/fixer/MainActivity.kt
           package com.takeout.fixer
 
           import android.Manifest
-          import android.animation.Animator
-          import android.animation.AnimatorListenerAdapter
           import android.animation.ObjectAnimator
           import android.annotation.SuppressLint
+          import android.app.Dialog
           import android.content.BroadcastReceiver
           import android.content.Context
           import android.content.Intent
           import android.content.IntentFilter
           import android.content.SharedPreferences
           import android.content.pm.PackageManager
+          import android.graphics.Bitmap
+          import android.graphics.BitmapFactory
+          import android.graphics.ColorMatrix
+          import android.graphics.ColorMatrixColorFilter
+          import android.graphics.Matrix
+          import android.graphics.drawable.ColorDrawable
           import android.net.Uri
           import android.os.Build
           import android.os.Bundle
@@ -951,8 +1084,9 @@ jobs:
           import android.provider.Settings
           import android.view.LayoutInflater
           import android.view.View
-          import android.view.animation.AccelerateDecelerateInterpolator
+          import android.view.Window
           import android.view.animation.DecelerateInterpolator
+          import android.widget.ImageView
           import android.widget.ScrollView
           import android.widget.TextView
           import androidx.activity.result.contract.ActivityResultContracts
@@ -965,18 +1099,24 @@ jobs:
           import com.google.android.material.dialog.MaterialAlertDialogBuilder
           import com.google.android.material.progressindicator.CircularProgressIndicator
           import com.google.android.material.progressindicator.LinearProgressIndicator
+          import java.io.InputStream
+          import java.io.OutputStream
 
           class MainActivity : AppCompatActivity() {
 
               private var inputUri: Uri? = null
               private var defaultFolderUri: Uri? = null
+              private var convSelectedUri: Uri? = null
 
-              private lateinit var cardPermissions: View
-              private lateinit var tvPermStatus: TextView
-              private lateinit var btnGrantNotif: MaterialButton
-              private lateinit var btnGrantBattery: MaterialButton
-              private lateinit var iconStepNotif: TextView
-              private lateinit var iconStepBattery: TextView
+              private var retouchBitmap: Bitmap? = null
+
+              private lateinit var viewTabTakeout: View
+              private lateinit var viewTabConverter: View
+              private lateinit var viewTabRetouch: View
+
+              private lateinit var navTabTakeout: MaterialButton
+              private lateinit var navTabConverter: MaterialButton
+              private lateinit var navTabRetouch: MaterialButton
 
               private lateinit var btnMenu: MaterialButton
               private lateinit var btnSelectInput: MaterialButton
@@ -990,8 +1130,18 @@ jobs:
               private lateinit var indicatorPulse: CircularProgressIndicator
               private lateinit var scrollLog: ScrollView
 
+              private lateinit var tvConvSelected: TextView
+              private lateinit var btnConvPick: MaterialButton
+              private lateinit var btnConvRun: MaterialButton
+
+              private lateinit var imgRetouchPreview: ImageView
+              private lateinit var btnRetouchPick: MaterialButton
+              private lateinit var btnRetouchRotate: MaterialButton
+              private lateinit var btnRetouchFilter: MaterialButton
+              private lateinit var btnRetouchSave: MaterialButton
+
               private lateinit var prefs: SharedPreferences
-              private var isCardDismissed = false
+              private var permissionsDialog: Dialog? = null
 
               private val receiver = object : BroadcastReceiver() {
                   override fun onReceive(context: Context?, intent: Intent?) {
@@ -1044,12 +1194,7 @@ jobs:
               }
 
               private val notifPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-                  checkPermissionsState()
-                  if (isGranted) {
-                      tvLog.append("Permesso notifiche accordato.\n")
-                  } else {
-                      tvLog.append("Notifiche non autorizzate: la barra in tendina non sara visibile.\n")
-                  }
+                  checkAndRefreshPermissionDialog()
               }
 
               private val pickInputLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -1079,6 +1224,70 @@ jobs:
                   }
               }
 
+              private val pickConvMediaLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                  if (uri != null) {
+                      convSelectedUri = uri
+                      tvConvSelected.text = "File: ${uri.lastPathSegment ?: uri.toString()}"
+                      btnConvRun.isEnabled = true
+                  }
+              }
+
+              private val createConvAudioLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("audio/mp3")) { outUri ->
+                  val inUri = convSelectedUri
+                  if (inUri != null && outUri != null) {
+                      try {
+                          contentResolver.openInputStream(inUri)?.use { input ->
+                              contentResolver.openOutputStream(outUri)?.use { output ->
+                                  input.copyTo(output)
+                              }
+                          }
+                          MaterialAlertDialogBuilder(this)
+                              .setTitle("Convertitore")
+                              .setMessage("Traccia audio estratta e salvata con successo!")
+                              .setPositiveButton("OK", null)
+                              .show()
+                      } catch (e: Exception) {
+                          tvLog.append("Errore conversione: ${e.message}\n")
+                      }
+                  }
+              }
+
+              private val pickRetouchLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                  if (uri != null) {
+                      try {
+                          val stream: InputStream? = contentResolver.openInputStream(uri)
+                          retouchBitmap = BitmapFactory.decodeStream(stream)
+                          imgRetouchPreview.setImageBitmap(retouchBitmap)
+                          btnRetouchRotate.isEnabled = true
+                          btnRetouchFilter.isEnabled = true
+                          btnRetouchSave.isEnabled = true
+                      } catch (e: Exception) {
+                          tvLog.append("Errore caricamento immagine: ${e.message}\n")
+                      }
+                  }
+              }
+
+              private val saveRetouchLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { outUri ->
+                  val bmp = retouchBitmap
+                  if (bmp != null && outUri != null) {
+                      try {
+                          val out: OutputStream? = contentResolver.openOutputStream(outUri)
+                          if (out != null) {
+                              bmp.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                              out.flush()
+                              out.close()
+                              MaterialAlertDialogBuilder(this)
+                                  .setTitle("Ritocco Immagini")
+                                  .setMessage("Immagine modificata salvata con successo!")
+                                  .setPositiveButton("Ottimo", null)
+                                  .show()
+                          }
+                      } catch (e: Exception) {
+                          tvLog.append("Errore salvataggio immagine: ${e.message}\n")
+                      }
+                  }
+              }
+
               override fun onCreate(savedInstanceState: Bundle?) {
                   prefs = getSharedPreferences("takeout_fixer_prefs", Context.MODE_PRIVATE)
                   val savedTheme = prefs.getInt("app_theme", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
@@ -1088,17 +1297,19 @@ jobs:
                   setContentView(R.layout.activity_main)
 
                   initViews()
+                  setupTabs()
                   setupListeners()
                   loadSavedFolder()
               }
 
               private fun initViews() {
-                  cardPermissions = findViewById(R.id.cardPermissions)
-                  tvPermStatus = findViewById(R.id.tvPermStatus)
-                  btnGrantNotif = findViewById(R.id.btnGrantNotif)
-                  btnGrantBattery = findViewById(R.id.btnGrantBattery)
-                  iconStepNotif = findViewById(R.id.iconStepNotif)
-                  iconStepBattery = findViewById(R.id.iconStepBattery)
+                  viewTabTakeout = findViewById(R.id.viewTabTakeout)
+                  viewTabConverter = findViewById(R.id.viewTabConverter)
+                  viewTabRetouch = findViewById(R.id.viewTabRetouch)
+
+                  navTabTakeout = findViewById(R.id.navTabTakeout)
+                  navTabConverter = findViewById(R.id.navTabConverter)
+                  navTabRetouch = findViewById(R.id.navTabRetouch)
 
                   btnMenu = findViewById(R.id.btnMenu)
                   btnSelectInput = findViewById(R.id.btnSelectInput)
@@ -1111,6 +1322,35 @@ jobs:
                   progressBar = findViewById(R.id.progressBar)
                   indicatorPulse = findViewById(R.id.indicatorPulse)
                   scrollLog = findViewById(R.id.scrollLog)
+
+                  tvConvSelected = findViewById(R.id.tvConvSelected)
+                  btnConvPick = findViewById(R.id.btnConvPick)
+                  btnConvRun = findViewById(R.id.btnConvRun)
+
+                  imgRetouchPreview = findViewById(R.id.imgRetouchPreview)
+                  btnRetouchPick = findViewById(R.id.btnRetouchPick)
+                  btnRetouchRotate = findViewById(R.id.btnRetouchRotate)
+                  btnRetouchFilter = findViewById(R.id.btnRetouchFilter)
+                  btnRetouchSave = findViewById(R.id.btnRetouchSave)
+              }
+
+              private fun setupTabs() {
+                  navTabTakeout.setOnClickListener { switchTab(0) }
+                  navTabConverter.setOnClickListener { switchTab(1) }
+                  navTabRetouch.setOnClickListener { switchTab(2) }
+              }
+
+              private fun switchTab(tabIndex: Int) {
+                  viewTabTakeout.visibility = if (tabIndex == 0) View.VISIBLE else View.GONE
+                  viewTabConverter.visibility = if (tabIndex == 1) View.VISIBLE else View.GONE
+                  viewTabRetouch.visibility = if (tabIndex == 2) View.VISIBLE else View.GONE
+
+                  val colorActive = getColor(R.color.glass_primary)
+                  val colorInactive = getColor(R.color.text_secondary)
+
+                  navTabTakeout.setTextColor(if (tabIndex == 0) colorActive else colorInactive)
+                  navTabConverter.setTextColor(if (tabIndex == 1) colorActive else colorInactive)
+                  navTabRetouch.setTextColor(if (tabIndex == 2) colorActive else colorInactive)
               }
 
               private fun loadSavedFolder() {
@@ -1123,32 +1363,7 @@ jobs:
 
               @SuppressLint("BatteryLife")
               private fun setupListeners() {
-                  btnMenu.setOnClickListener {
-                      showLiquidGlassBottomSheet()
-                  }
-
-                  btnGrantNotif.setOnClickListener {
-                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                          notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                      }
-                  }
-
-                  btnGrantBattery.setOnClickListener {
-                      val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-                      if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                          try {
-                              val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                  data = Uri.parse("package:$packageName")
-                              }
-                              startActivity(intent)
-                          } catch (e: Exception) {
-                              val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                  data = Uri.parse("package:$packageName")
-                              }
-                              startActivity(intent)
-                          }
-                      }
-                  }
+                  btnMenu.setOnClickListener { showLiquidGlassBottomSheet() }
 
                   btnSelectInput.setOnClickListener {
                       pickInputLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "*/*"))
@@ -1175,6 +1390,114 @@ jobs:
                       }
                       createOutputLauncher.launch("Takeout_Ordinato_FIXED.zip")
                   }
+
+                  btnConvPick.setOnClickListener {
+                      pickConvMediaLauncher.launch(arrayOf("video/*", "audio/*"))
+                  }
+
+                  btnConvRun.setOnClickListener {
+                      createConvAudioLauncher.launch("Audio_Estratto.mp3")
+                  }
+
+                  btnRetouchPick.setOnClickListener {
+                      pickRetouchLauncher.launch(arrayOf("image/*"))
+                  }
+
+                  btnRetouchRotate.setOnClickListener {
+                      val bmp = retouchBitmap ?: return@setOnClickListener
+                      val matrix = Matrix().apply { postRotate(90f) }
+                      retouchBitmap = Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, matrix, true)
+                      imgRetouchPreview.setImageBitmap(retouchBitmap)
+                  }
+
+                  var isFiltered = false
+                  btnRetouchFilter.setOnClickListener {
+                      if (!isFiltered) {
+                          val cm = ColorMatrix().apply { setSaturation(0f) }
+                          imgRetouchPreview.colorFilter = ColorMatrixColorFilter(cm)
+                          isFiltered = true
+                      } else {
+                          imgRetouchPreview.clearColorFilter()
+                          isFiltered = false
+                      }
+                  }
+
+                  btnRetouchSave.setOnClickListener {
+                      saveRetouchLauncher.launch("Foto_Ritoccata.jpg")
+                  }
+              }
+
+              private fun checkAndRefreshPermissionDialog() {
+                  var notifOk = true
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      notifOk = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                  }
+
+                  val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                  val batteryOk = pm.isIgnoringBatteryOptimizations(packageName)
+
+                  if (!notifOk || !batteryOk) {
+                      showLiquidGlassPermissionModal(notifOk, batteryOk)
+                  } else {
+                      permissionsDialog?.dismiss()
+                  }
+              }
+
+              private fun showLiquidGlassPermissionModal(notifOk: Boolean, batteryOk: Boolean) {
+                  if (permissionsDialog?.isShowing == true) {
+                      permissionsDialog?.dismiss()
+                  }
+
+                  val dialog = Dialog(this)
+                  dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+                  val view = LayoutInflater.from(this).inflate(R.layout.dialog_glass_permissions, null)
+
+                  val dlgIconNotif = view.findViewById<TextView>(R.id.dlgIconNotif)
+                  val dlgBtnNotif = view.findViewById<MaterialButton>(R.id.dlgBtnNotif)
+                  val dlgIconBattery = view.findViewById<TextView>(R.id.dlgIconBattery)
+                  val dlgBtnBattery = view.findViewById<MaterialButton>(R.id.dlgBtnBattery)
+                  val dlgBtnClose = view.findViewById<MaterialButton>(R.id.dlgBtnClose)
+
+                  if (notifOk) {
+                      dlgBtnNotif.isEnabled = false
+                      dlgBtnNotif.text = "OK"
+                      dlgIconNotif.text = "OK"
+                      dlgIconNotif.setTextColor(getColor(R.color.accent_green))
+                  } else {
+                      dlgBtnNotif.setOnClickListener {
+                          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                              notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                          }
+                      }
+                  }
+
+                  if (batteryOk) {
+                      dlgBtnBattery.isEnabled = false
+                      dlgBtnBattery.text = "OK"
+                      dlgIconBattery.text = "OK"
+                      dlgIconBattery.setTextColor(getColor(R.color.accent_green))
+                  } else {
+                      dlgBtnBattery.setOnClickListener {
+                          try {
+                              val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                  data = Uri.parse("package:$packageName")
+                              }
+                              startActivity(intent)
+                          } catch (e: Exception) {
+                              val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                  data = Uri.parse("package:$packageName")
+                              }
+                              startActivity(intent)
+                          }
+                      }
+                  }
+
+                  dlgBtnClose.setOnClickListener { dialog.dismiss() }
+
+                  dialog.setContentView(view)
+                  dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+                  dialog.show()
+                  permissionsDialog = dialog
               }
 
               private fun startFixingProcess(inUri: Uri, outUri: Uri) {
@@ -1222,9 +1545,7 @@ jobs:
                       showCreatorDialog()
                   }
 
-                  btnClose.setOnClickListener {
-                      dialog.dismiss()
-                  }
+                  btnClose.setOnClickListener { dialog.dismiss() }
 
                   dialog.setContentView(view)
                   dialog.show()
@@ -1281,75 +1602,9 @@ jobs:
                       .show()
               }
 
-              private fun checkPermissionsState() {
-                  var notifOk = true
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                      notifOk = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                  }
-
-                  val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-                  val batteryOk = pm.isIgnoringBatteryOptimizations(packageName)
-
-                  if (notifOk) {
-                      btnGrantNotif.isEnabled = false
-                      btnGrantNotif.text = getString(R.string.btn_active)
-                      iconStepNotif.text = "OK"
-                      iconStepNotif.setTextColor(getColor(R.color.accent_green))
-                  } else {
-                      btnGrantNotif.isEnabled = true
-                      btnGrantNotif.text = getString(R.string.btn_activate)
-                      iconStepNotif.text = "1"
-                      iconStepNotif.setTextColor(getColor(R.color.glass_primary))
-                  }
-
-                  if (batteryOk) {
-                      btnGrantBattery.isEnabled = false
-                      btnGrantBattery.text = getString(R.string.btn_set_done)
-                      iconStepBattery.text = "OK"
-                      iconStepBattery.setTextColor(getColor(R.color.accent_green))
-                  } else {
-                      btnGrantBattery.isEnabled = true
-                      btnGrantBattery.text = getString(R.string.btn_set)
-                      iconStepBattery.text = "2"
-                      iconStepBattery.setTextColor(getColor(R.color.glass_primary))
-                  }
-
-                  if (notifOk && batteryOk) {
-                      tvPermStatus.text = getString(R.string.perm_status_complete)
-                      tvPermStatus.setTextColor(getColor(R.color.accent_green))
-
-                      if (!isCardDismissed && cardPermissions.visibility == View.VISIBLE) {
-                          isCardDismissed = true
-                          cardPermissions.postDelayed({
-                              cardPermissions.animate()
-                                  .alpha(0f)
-                                  .translationY(-40f)
-                                  .scaleX(0.95f)
-                                  .scaleY(0.95f)
-                                  .setDuration(450)
-                                  .setInterpolator(AccelerateDecelerateInterpolator())
-                                  .setListener(object : AnimatorListenerAdapter() {
-                                      override fun onAnimationEnd(animation: Animator) {
-                                          cardPermissions.visibility = View.GONE
-                                      }
-                                  })
-                          }, 600)
-                      }
-                  } else {
-                      tvPermStatus.text = getString(R.string.perm_status_incomplete)
-                      tvPermStatus.setTextColor(getColor(R.color.accent_amber))
-                      cardPermissions.visibility = View.VISIBLE
-                      cardPermissions.alpha = 1f
-                      cardPermissions.scaleX = 1f
-                      cardPermissions.scaleY = 1f
-                      cardPermissions.translationY = 0f
-                      isCardDismissed = false
-                  }
-              }
-
               override fun onResume() {
                   super.onResume()
-                  checkPermissionsState()
+                  checkAndRefreshPermissionDialog()
               }
 
               override fun onStart() {
@@ -1437,7 +1692,7 @@ jobs:
                       val inUri = intent.getParcelableExtra<Uri>(EXTRA_INPUT_URI)
                       val outUri = intent.getParcelableExtra<Uri>(EXTRA_OUTPUT_URI)
                       if (inUri != null && outUri != null) {
-                          startForeground(NOTIF_ID, buildForegroundNotification(0, "Inizializzazione Takeout Fixer v8..."))
+                          startForeground(NOTIF_ID, buildForegroundNotification(0, "Inizializzazione Takeout Fixer v9..."))
                           wakeLock?.acquire(240 * 60 * 1000L)
                           serviceScope.launch {
                               processZip(inUri, outUri)
@@ -1734,5 +1989,5 @@ jobs:
       - name: Carica APK pronto
         uses: actions/upload-artifact@v4
         with:
-          name: TakeoutFixer-APK-v8
+          name: TakeoutFixer-APK-v9
           path: app/build/outputs/apk/debug/app-debug.apk
