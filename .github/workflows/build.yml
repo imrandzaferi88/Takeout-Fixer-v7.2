@@ -1,4 +1,4 @@
-name: Build TakeoutFixer v7 Pro
+name: Build TakeoutFixer v7.1 MultiLang
 
 on:
   push:
@@ -13,6 +13,7 @@ jobs:
           mkdir -p app/src/main/java/com/takeout/fixer
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/values-en
           mkdir -p app/src/main/res/values-night
           mkdir -p app/src/main/res/menu
           mkdir -p app/src/main/res/drawable
@@ -65,8 +66,8 @@ jobs:
                   applicationId "com.takeout.fixer"
                   minSdk 26
                   targetSdk 34
-                  versionCode 7
-                  versionName "7.0"
+                  versionCode 8
+                  versionName "7.1"
               }
 
               buildTypes {
@@ -150,7 +151,7 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">Takeout Fixer</string>
-              <string name="app_version">v7.0 Pro</string>
+              <string name="app_version">v7.1 Pro</string>
               <string name="app_subtitle">Organizzazione Metadati e Anno Mese</string>
               <string name="initial_setup_title">Configurazione Iniziale</string>
               <string name="perm_status_incomplete">Da completare</string>
@@ -172,7 +173,7 @@ jobs:
               <string name="btn_start">Salva e Avvia Elaborazione</string>
               <string name="ready">In attesa del file...</string>
               <string name="system_log">Console di Sistema</string>
-              <string name="init_complete">Takeout Fixer v7.0 avviato con successo.</string>
+              <string name="init_complete">Takeout Fixer v7.1 avviato con successo.</string>
               <string name="settings">Impostazioni</string>
               <string name="change_language">Lingua</string>
               <string name="change_theme">Tema dell app</string>
@@ -182,6 +183,45 @@ jobs:
               <string name="theme_light">Tema Giorno Chiaro</string>
               <string name="theme_dark">Tema Notte Scuro</string>
               <string name="close">Chiudi</string>
+          </resources>
+          EOF
+
+          cat << 'EOF' > app/src/main/res/values-en/strings.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Takeout Fixer</string>
+              <string name="app_version">v7.1 Pro</string>
+              <string name="app_subtitle">Metadata &amp; Year Month Organizer</string>
+              <string name="initial_setup_title">Initial Setup</string>
+              <string name="perm_status_incomplete">Incomplete</string>
+              <string name="perm_status_complete">100% Ready</string>
+              <string name="setup_desc">Complete these two steps to process large archives even with screen off:</string>
+              <string name="step_notif_title">Background Notifications</string>
+              <string name="step_notif_desc">Live status in notification drawer</string>
+              <string name="btn_activate">Enable</string>
+              <string name="btn_active">Active</string>
+              <string name="step_battery_title">Battery Optimization</string>
+              <string name="step_battery_desc">Allow unrestricted background execution</string>
+              <string name="btn_set">Set</string>
+              <string name="btn_set_done">Configured</string>
+              <string name="input_card_title">1. Takeout Archive</string>
+              <string name="no_file_selected">No file selected</string>
+              <string name="btn_browse_zip">Choose Takeout ZIP</string>
+              <string name="output_card_title">2. Processing &amp; Saving</string>
+              <string name="output_desc">Generates an archive sorted by Year Month with EXIF and GPS injected without JSON files.</string>
+              <string name="btn_start">Save and Start Process</string>
+              <string name="ready">Waiting for archive...</string>
+              <string name="system_log">System Console</string>
+              <string name="init_complete">Takeout Fixer v7.1 initialized successfully.</string>
+              <string name="settings">Settings</string>
+              <string name="change_language">Language</string>
+              <string name="change_theme">App Theme</string>
+              <string name="default_folder">Default Folder</string>
+              <string name="about_creator">App Author</string>
+              <string name="theme_system">Follow system</string>
+              <string name="theme_light">Day Theme Light</string>
+              <string name="theme_dark">Night Theme Dark</string>
+              <string name="close">Close</string>
           </resources>
           EOF
 
@@ -1078,6 +1118,7 @@ jobs:
                       .setItems(languages) { _, which ->
                           val localeCode = if (which == 0) "it" else "en"
                           AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(localeCode))
+                          recreate()
                       }
                       .setNegativeButton(R.string.close, null)
                       .show()
@@ -1325,7 +1366,7 @@ jobs:
 
                   val children = parent.listFiles() ?: return null
                   for (f in children) {
-                      if (f.name.startsWith("$name.") && f.name.endsWith(".json")) return f
+                    if (f.name.startsWith("$name.") && f.name.endsWith(".json")) return f
                   }
                   val direct = File(parent, "$stem.json")
                   if (direct.exists()) return direct
@@ -1545,5 +1586,5 @@ jobs:
       - name: Carica APK pronto
         uses: actions/upload-artifact@v4
         with:
-          name: TakeoutFixer-APK-v7
+          name: TakeoutFixer-APK-v7-1
           path: app/build/outputs/apk/debug/app-debug.apk
