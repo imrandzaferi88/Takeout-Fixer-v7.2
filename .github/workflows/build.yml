@@ -1,4 +1,4 @@
-name: Build SoletteProst APK
+name: Build SolettePro APK
 
 on:
   push:
@@ -60,8 +60,8 @@ jobs:
                   applicationId = "com.imran.solettepro"
                   minSdk = 26
                   targetSdk = 34
-                  versionCode = 1
-                  versionName = "1.0"
+                  versionCode = 2
+                  versionName = "1.1"
               }
 
               buildTypes {
@@ -138,7 +138,6 @@ jobs:
                   const val MAC_LEFT = "FF:FF:11:B0:E1:57"
                   const val MAC_RIGHT = "FF:FF:11:B0:E5:5D"
 
-                  // UUID corretti confermati dall'Inspector
                   val SERVICE_UUID: UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb")
                   val WRITE_CHAR_UUID: UUID = UUID.fromString("0000fff3-0000-1000-8000-00805f9b34fb")
                   val NOTIFY_CHAR_UUID: UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb")
@@ -323,11 +322,10 @@ jobs:
               }
 
               private fun sendPacket(isLeft: Boolean, type: String) {
-                  // Pacchetti strutturati tipici per riscaldatori BLE UART
                   val hex = when (type) {
                       "ON" -> "AA0201010455"
                       "OFF" -> "AA0201000355"
-                      else -> "AA0201030655" // HIGH / ALTO
+                      else -> "AA0201030655"
                   }
                   writeHexToGatt(if (isLeft) gattLeft else gattRight, isLeft, hex)
               }
@@ -341,7 +339,7 @@ jobs:
               private fun writeHexToGatt(gatt: BluetoothGatt?, isLeft: Boolean, hexString: String) {
                   val side = if (isLeft) "L" else "R"
                   if (gatt == null) { log("Errore: $side non connessa"); return }
-                  val bytes = hexToBytes(hexString) ?: { log("Hex errato"); return }
+                  val bytes = hexToBytes(hexString) ?: run { log("Hex errato"); return }
 
                   val targetChar = gatt.getService(SERVICE_UUID)?.getCharacteristic(WRITE_CHAR_UUID)
                   if (targetChar == null) { log("Caratteristica fff3 non trovata"); return }
