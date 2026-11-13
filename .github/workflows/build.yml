@@ -60,8 +60,8 @@ jobs:
                   applicationId = "com.imran.solettelr"
                   minSdk = 26
                   targetSdk = 34
-                  versionCode = 1
-                  versionName = "1.0"
+                  versionCode = 2
+                  versionName = "1.1"
               }
 
               buildTypes {
@@ -104,6 +104,7 @@ jobs:
                   android:theme="@style/Theme.MaterialComponents.DayNight.DarkActionBar">
                   <activity
                       android:name=".MainActivity"
+                      android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
                       android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
@@ -125,6 +126,7 @@ jobs:
           import android.os.Build
           import android.os.Bundle
           import android.view.Gravity
+          import android.view.View
           import android.widget.*
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
@@ -144,6 +146,24 @@ jobs:
                   val ALT_WRITE_UUID: UUID = UUID.fromString("0000fff3-0000-1000-8000-00805f9b34fb")
               }
 
+              data class CommandSet(
+                  val name: String,
+                  val off: String,
+                  val low: String,
+                  val med: String,
+                  val high: String
+              )
+
+              private val commandSets = listOf(
+                  CommandSet("Set 1: Xinkesi Checksum (AA 02 01..55)", "AA0201000355", "AA0201010455", "AA0201020555", "AA0201030655"),
+                  CommandSet("Set 2: Xinkesi 55 AA (55 AA 01..)", "55AA0100", "55AA0101", "55AA0102", "55AA0103"),
+                  CommandSet("Set 3: Xinkesi AA 55 (AA 55 01..)", "AA550100", "AA550101", "AA550102", "AA550103"),
+                  CommandSet("Set 4: Temp °C (0 / 40° / 50° / 60°)", "AA0202000455", "AA0202282C55", "AA0202323655", "AA02023C4055"),
+                  CommandSet("Set 5: Frame Breve (A1 01..)", "A10100", "A10101", "A10102", "A10103"),
+                  CommandSet("Set 6: Frame 5-Byte (55 AA 03 01..)", "55AA030100", "55AA030101", "55AA030102", "55AA030103")
+              )
+
+              private var currentSetIndex = 0
               private var bluetoothAdapter: BluetoothAdapter? = null
               private var gattLeft: BluetoothGatt? = null
               private var gattRight: BluetoothGatt? = null
@@ -170,8 +190,30 @@ jobs:
                       setPadding(36, 36, 36, 36)
                   }
 
+                  // --- SELETTORE SET COMANDI ---
+                  root.addView(makeHeader("PROTOCOLLO COMANDI:"))
+                  val spinner = Spinner(this).apply {
+                      adapter = ArrayAdapter(
+                          this@MainActivity,
+                          android.R.layout.simple_spinner_dropdown_item,
+                          commandSets.map { it.name }
+                      )
+                      onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                          override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                              currentSetIndex = position
+                              val set = commandSets[position]
+                              hexInput.setText(set.high)
+                              log("Selezionato -> ${set.name}")
+                          }
+                          override fun onNothingSelected(parent: AdapterView<*>?) {}
+                      }
+                  }
+                  root.addView(spinner)
+
                   // --- SOLETTA SINISTRA (L) ---
-                  root.addView(makeHeader("SOLETTA SINISTRA (L) - $MAC_LEFT"))
+                  root.addView(makeHeader("SOLETTA SINISTRA (L) - $MAC_LEFT").apply {
+                      setPadding(0, 32, 0, 8)
+                  })
                   statusLeft = TextView(this).apply { text = "Stato: Disconnessa" }
                   root.addView(statusLeft)
 
@@ -181,15 +223,15 @@ jobs:
                   root.addView(rowConnL)
 
                   val rowCmdL = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowCmdL.addView(makeButton("OFF") { sendPreset(isLeft = true, "AA010055") })
-                  rowCmdL.addView(makeButton("BASSO") { sendPreset(isLeft = true, "AA010155") })
-                  rowCmdL.addView(makeButton("MEDIO") { sendPreset(isLeft = true, "AA010255") })
-                  rowCmdL.addView(makeButton("ALTO") { sendPreset(isLeft = true, "AA010355") })
+                  rowCmdL.addView(makeButton("OFF") { sendLevel(isLeft = true, 0) })
+                  rowCmdL.addView(makeButton("BASSO") { sendLevel(isLeft = true, 1) })
+                  rowCmdL.addView(makeButton("MEDIO") { sendLevel(isLeft = true, 2) })
+                  rowCmdL.addView(makeButton("ALTO") { sendLevel(isLeft = true, 3) })
                   root.addView(rowCmdL)
 
                   // --- SOLETTA DESTRA (R) ---
                   root.addView(makeHeader("SOLETTA DESTRA (R) - $MAC_RIGHT").apply {
-                      setPadding(0, 48, 0, 8)
+                      setPadding(0, 40, 0, 8)
                   })
                   statusRight = TextView(this).apply { text = "Stato: Disconnessa" }
                   root.addView(statusRight)
@@ -200,19 +242,19 @@ jobs:
                   root.addView(rowConnR)
 
                   val rowCmdR = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowCmdR.addView(makeButton("OFF") { sendPreset(isLeft = false, "AA010055") })
-                  rowCmdR.addView(makeButton("BASSO") { sendPreset(isLeft = false, "AA010155") })
-                  rowCmdR.addView(makeButton("MEDIO") { sendPreset(isLeft = false, "AA010255") })
-                  rowCmdR.addView(makeButton("ALTO") { sendPreset(isLeft = false, "AA010355") })
+                  rowCmdR.addView(makeButton("OFF") { sendLevel(isLeft = false, 0) })
+                  rowCmdR.addView(makeButton("BASSO") { sendLevel(isLeft = false, 1) })
+                  rowCmdR.addView(makeButton("MEDIO") { sendLevel(isLeft = false, 2) })
+                  rowCmdR.addView(makeButton("ALTO") { sendLevel(isLeft = false, 3) })
                   root.addView(rowCmdR)
 
                   // --- INVIO HEX PERSONALIZZATO ---
-                  root.addView(makeHeader("INVIO HEX DI TEST (dal log btsnoop)").apply {
-                      setPadding(0, 48, 0, 8)
+                  root.addView(makeHeader("INVIO HEX DI TEST:").apply {
+                      setPadding(0, 40, 0, 8)
                   })
                   hexInput = EditText(this).apply {
-                      hint = "Es: AA010355 oppure 55AA0101"
-                      setText("AA010355")
+                      hint = "Es: AA0201030655"
+                      setText(commandSets[0].high)
                   }
                   root.addView(hexInput)
 
@@ -226,7 +268,18 @@ jobs:
                   root.addView(rowCustom)
 
                   // --- LOG ---
-                  root.addView(makeHeader("LOG RISPOSTE BATTERIA:").apply { setPadding(0, 36, 0, 8) })
+                  val rowLogHeader = LinearLayout(this).apply {
+                      orientation = LinearLayout.HORIZONTAL
+                      setPadding(0, 32, 0, 8)
+                  }
+                  rowLogHeader.addView(TextView(this).apply {
+                      text = "LOG RISPOSTE BATTERIA:"
+                      textSize = 16f
+                      layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2f)
+                  })
+                  rowLogHeader.addView(makeButton("Pulisci Log") { logView.text = "" })
+                  root.addView(rowLogHeader)
+
                   logView = TextView(this).apply {
                       text = "Pronto.\n"
                       textSize = 12f
@@ -240,7 +293,7 @@ jobs:
               private fun makeHeader(title: String) = TextView(this).apply {
                   text = title
                   textSize = 16f
-                  setPadding(0, 16, 0, 8)
+                  setPadding(0, 12, 0, 8)
               }
 
               private fun makeButton(label: String, onClick: () -> Unit) = Button(this).apply {
@@ -268,6 +321,8 @@ jobs:
               @SuppressLint("MissingPermission")
               private fun connectDevice(mac: String, isLeft: Boolean) {
                   val adapter = bluetoothAdapter ?: return
+                  disconnectDevice(isLeft)
+
                   val device = try {
                       adapter.getRemoteDevice(mac)
                   } catch (e: Exception) {
@@ -283,21 +338,39 @@ jobs:
                               gatt.discoverServices()
                           } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                               updateStatus(isLeft, "Disconnessa")
+                              gatt.close()
+                              if (isLeft) gattLeft = null else gattRight = null
                           }
                       }
 
                       override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
                           if (status == BluetoothGatt.GATT_SUCCESS) {
-                              updateStatus(isLeft, "Pronta (GATT OK)")
+                              updateStatus(isLeft, "Connessa (GATT OK)")
                               enableNotifications(gatt)
                           }
                       }
 
-                      @Deprecated("Deprecated in Java")
-                      override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-                          val hex = characteristic.value?.joinToString(" ") { "%02X".format(it) } ?: ""
+                      override fun onCharacteristicChanged(
+                          gatt: BluetoothGatt,
+                          characteristic: BluetoothGattCharacteristic,
+                          value: ByteArray
+                      ) {
+                          val hex = value.joinToString(" ") { "%02X".format(it) }
                           val side = if (isLeft) "L" else "R"
                           log("Risposta [$side]: $hex")
+                      }
+
+                      @Deprecated("Deprecated in Java")
+                      override fun onCharacteristicChanged(
+                          gatt: BluetoothGatt,
+                          characteristic: BluetoothGattCharacteristic
+                      ) {
+                          if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                              @Suppress("DEPRECATION")
+                              val hex = characteristic.value?.joinToString(" ") { "%02X".format(it) } ?: ""
+                              val side = if (isLeft) "L" else "R"
+                              log("Risposta [$side]: $hex")
+                          }
                       }
                   }
 
@@ -311,8 +384,14 @@ jobs:
                   gatt.setCharacteristicNotification(char, true)
                   val desc = char.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
                   desc?.let {
-                      it.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                      gatt.writeDescriptor(it)
+                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                          gatt.writeDescriptor(it, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                      } else {
+                          @Suppress("DEPRECATION")
+                          it.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                          @Suppress("DEPRECATION")
+                          gatt.writeDescriptor(it)
+                      }
                   }
               }
 
@@ -325,7 +404,14 @@ jobs:
                   updateStatus(isLeft, "Disconnessa")
               }
 
-              private fun sendPreset(isLeft: Boolean, hex: String) {
+              private fun sendLevel(isLeft: Boolean, level: Int) {
+                  val set = commandSets[currentSetIndex]
+                  val hex = when (level) {
+                      0 -> set.off
+                      1 -> set.low
+                      2 -> set.med
+                      else -> set.high
+                  }
                   writeHexToGatt(if (isLeft) gattLeft else gattRight, isLeft, hex)
               }
 
@@ -367,7 +453,7 @@ jobs:
               }
 
               private fun hexToBytes(hex: String): ByteArray? {
-                  if (hex.length % 2 != 0) return null
+                  if (hex.isEmpty() || hex.length % 2 != 0) return null
                   return try {
                       ByteArray(hex.length / 2) { i ->
                           hex.substring(i * 2, i * 2 + 2).toInt(16).toByte()
@@ -387,6 +473,12 @@ jobs:
                   runOnUiThread {
                       logView.append("$msg\n")
                   }
+              }
+
+              override fun onDestroy() {
+                  super.onDestroy()
+                  disconnectDevice(true)
+                  disconnectDevice(false)
               }
           }
           EOF
