@@ -13,6 +13,13 @@ jobs:
         run: |
           mkdir -p app/src/main/java/com/imran/solettelr
 
+          cat << 'EOF' > gradle.properties
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          kotlin.code.style=official
+          android.nonTransitiveRClass=true
+          EOF
+
           cat << 'EOF' > settings.gradle.kts
           pluginManagement {
               repositories {
@@ -34,8 +41,8 @@ jobs:
 
           cat << 'EOF' > build.gradle.kts
           plugins {
-              id("com.android.application") version "8.5.0" apply false
-              id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+              id("com.android.application") version "8.2.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.22" apply false
           }
           EOF
 
@@ -72,9 +79,9 @@ jobs:
           }
 
           dependencies {
-              implementation("androidx.core:core-ktx:1.13.1")
-              implementation("androidx.appcompat:appcompat:1.7.0")
-              implementation("com.google.android.material:material:1.12.0")
+              implementation("androidx.core:core-ktx:1.12.0")
+              implementation("androidx.appcompat:appcompat:1.6.1")
+              implementation("com.google.android.material:material:1.11.0")
           }
           EOF
 
@@ -393,7 +400,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.7'
+          gradle-version: '8.4'
 
       - name: Build Debug APK
         run: gradle assembleDebug
