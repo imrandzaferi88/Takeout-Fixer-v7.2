@@ -1,4 +1,4 @@
-name: Build SoletteLR APK
+name: Build SoletteBruteForce APK
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Genera struttura progetto Android
         run: |
-          mkdir -p app/src/main/java/com/imran/solettelr
+          mkdir -p app/src/main/java/com/imran/solettebf
 
           cat << 'EOF' > gradle.properties
           org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
@@ -35,7 +35,7 @@ jobs:
                   mavenCentral()
               }
           }
-          rootProject.name = "SoletteLR"
+          rootProject.name = "SoletteBF"
           include(":app")
           EOF
 
@@ -53,15 +53,15 @@ jobs:
           }
 
           android {
-              namespace = "com.imran.solettelr"
+              namespace = "com.imran.solettebf"
               compileSdk = 34
 
               defaultConfig {
-                  applicationId = "com.imran.solettelr"
+                  applicationId = "com.imran.solettebf"
                   minSdk = 26
                   targetSdk = 34
-                  versionCode = 3
-                  versionName = "1.2"
+                  versionCode = 1
+                  versionName = "1.0"
               }
 
               buildTypes {
@@ -99,7 +99,7 @@ jobs:
 
               <application
                   android:allowBackup="true"
-                  android:label="Solette L/R"
+                  android:label="Solette BruteForce"
                   android:supportsRtl="true"
                   android:theme="@style/Theme.MaterialComponents.DayNight.DarkActionBar">
                   <activity
@@ -115,8 +115,8 @@ jobs:
           </manifest>
           EOF
 
-          cat << 'EOF' > app/src/main/java/com/imran/solettelr/MainActivity.kt
-          package com.imran.solettelr
+          cat << 'EOF' > app/src/main/java/com/imran/solettebf/MainActivity.kt
+          package com.imran.solettebf
 
           import android.Manifest
           import android.annotation.SuppressLint
@@ -125,8 +125,9 @@ jobs:
           import android.content.pm.PackageManager
           import android.os.Build
           import android.os.Bundle
+          import android.os.Handler
+          import android.os.Looper
           import android.view.Gravity
-          import android.view.View
           import android.widget.*
           import androidx.appcompat.app.AppCompatActivity
           import androidx.core.app.ActivityCompat
@@ -138,46 +139,59 @@ jobs:
                   const val MAC_LEFT = "FF:FF:11:B0:E1:57"
                   const val MAC_RIGHT = "FF:FF:11:B0:E5:5D"
 
-                  // Servizio dati reale 0xFFF0 (esclude 5833ff01 che è il canale OTA)
                   val SERVICE_UUID: UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb")
                   val WRITE_CHAR_UUID: UUID = UUID.fromString("0000fff3-0000-1000-8000-00805f9b34fb")
-                  val NOTIFY_CHAR_UUID: UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb")
               }
 
-              data class CommandSet(
-                  val name: String,
-                  val on: String,
-                  val off: String,
-                  val low: String,
-                  val med: String,
-                  val high: String
-              )
-
-              private val commandSets = listOf(
-                  CommandSet("Set 1: Standard (AA 01..55)", "AA010155", "AA010055", "AA010155", "AA010255", "AA010355"),
-                  CommandSet("Set 2: Checksum (AA 02 01..55)", "AA0201010455", "AA0201000355", "AA0201010455", "AA0201020555", "AA0201030655"),
-                  CommandSet("Set 3: Header 55 AA (55 AA 01..)", "55AA0101", "55AA0100", "55AA0101", "55AA0102", "55AA0103"),
-                  CommandSet("Set 4: Temp °C (40° / 50° / 60°)", "AA0201010455", "AA0202000455", "AA0202282C55", "AA0202323655", "AA02023C4055"),
-                  CommandSet("Set 5: 5-Byte (55 AA 03 01..)", "55AA030101", "55AA030100", "55AA030101", "55AA030102", "55AA030103"),
-                  CommandSet("Set 6: Breve (A1 01..)", "A10101", "A10100", "A10101", "A10102", "A10103")
-              )
-
-              private var currentSetIndex = 0
               private var bluetoothAdapter: BluetoothAdapter? = null
               private var gattLeft: BluetoothGatt? = null
               private var gattRight: BluetoothGatt? = null
 
               private lateinit var statusLeft: TextView
               private lateinit var statusRight: TextView
+              private lateinit var currentHexView: TextView
               private lateinit var logView: TextView
-              private lateinit var hexInput: EditText
+
+              private var isTesting = false
+              private val handler = Handler(Looper.getMainLooper())
+              private var testRunnable: Runnable? = null
+              private var currentPayloadIndex = 0
+              private var lastSentHex = ""
+
+              // Lista completa di payload candidati per Xinkesi / Freqchip
+              private val payloadList = mutableListOf<String>().apply {
+                  // Pattern AA ... 55
+                  for (cmd in listOf("01", "02", "03")) {
+                      for (valByte in listOf("01", "02", "03", "04", "05", "40", "50", "60")) {
+                          add("AA01$cmd$valByte")
+                          add("AA02$cmd$valByte")
+                          add("AA01$cmd$valByte" + "55")
+                          add("AA02$cmd$valByte" + "55")
+                          add("AA0201$valByte" + "0455")
+                          add("AA0202$valByte" + "3255")
+                      }
+                  }
+                  // Pattern 55 AA ...
+                  for (cmd in listOf("01", "02", "03")) {
+                      for (valByte in listOf("01", "02", "03")) {
+                          add("55AA$cmd$valByte")
+                          add("55AA03$cmd$valByte")
+                      }
+                  }
+                  // Pattern brevi A1 / Fe / FF
+                  for (valByte in listOf("01", "02", "03", "10", "20", "30")) {
+                      add("A101$valByte")
+                      add("A102$valByte")
+                      add("FE01$valByte")
+                      add("01$valByte")
+                      add("03$valByte")
+                  }
+              }
 
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
-
                   val manager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
                   bluetoothAdapter = manager.adapter
-
                   setupUI()
                   checkPermissions()
               }
@@ -189,108 +203,51 @@ jobs:
                       setPadding(36, 36, 36, 36)
                   }
 
-                  // --- SELETTORE SET COMANDI ---
-                  root.addView(makeHeader("PROTOCOLLO COMANDI (su 0xFFF3):"))
-                  val spinner = Spinner(this).apply {
-                      adapter = ArrayAdapter(
-                          this@MainActivity,
-                          android.R.layout.simple_spinner_dropdown_item,
-                          commandSets.map { it.name }
-                      )
-                      onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                          override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                              currentSetIndex = position
-                              val set = commandSets[position]
-                              hexInput.setText(set.on)
-                              log("Selezionato -> ${set.name}")
-                          }
-                          override fun onNothingSelected(parent: AdapterView<*>?) {}
-                      }
-                  }
-                  root.addView(spinner)
-
-                  // --- SOLETTA SINISTRA (L) ---
-                  root.addView(makeHeader("SOLETTA SINISTRA (L) - $MAC_LEFT").apply {
-                      setPadding(0, 32, 0, 8)
-                  })
-                  statusLeft = TextView(this).apply { text = "Stato: Disconnessa" }
+                  root.addView(makeHeader("STATO CONNESSIONI:"))
+                  statusLeft = TextView(this).apply { text = "Soletta L: Disconnessa" }
+                  statusRight = TextView(this).apply { text = "Soletta R: Disconnessa" }
                   root.addView(statusLeft)
-
-                  val rowConnL = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowConnL.addView(makeButton("Connetti L") { connectDevice(MAC_LEFT, isLeft = true) })
-                  rowConnL.addView(makeButton("Disconnetti L") { disconnectDevice(isLeft = true) })
-                  root.addView(rowConnL)
-
-                  val rowPowerL = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowPowerL.addView(makeButton("ON") { sendAction(isLeft = true, "on") })
-                  rowPowerL.addView(makeButton("OFF") { sendAction(isLeft = true, "off") })
-                  root.addView(rowPowerL)
-
-                  val rowCmdL = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowCmdL.addView(makeButton("BASSO") { sendAction(isLeft = true, "low") })
-                  rowCmdL.addView(makeButton("MEDIO") { sendAction(isLeft = true, "med") })
-                  rowCmdL.addView(makeButton("ALTO") { sendAction(isLeft = true, "high") })
-                  root.addView(rowCmdL)
-
-                  // --- SOLETTA DESTRA (R) ---
-                  root.addView(makeHeader("SOLETTA DESTRA (R) - $MAC_RIGHT").apply {
-                      setPadding(0, 40, 0, 8)
-                  })
-                  statusRight = TextView(this).apply { text = "Stato: Disconnessa" }
                   root.addView(statusRight)
 
-                  val rowConnR = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowConnR.addView(makeButton("Connetti R") { connectDevice(MAC_RIGHT, isLeft = false) })
-                  rowConnR.addView(makeButton("Disconnetti R") { disconnectDevice(isLeft = false) })
-                  root.addView(rowConnR)
-
-                  val rowPowerR = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowPowerR.addView(makeButton("ON") { sendAction(isLeft = false, "on") })
-                  rowPowerR.addView(makeButton("OFF") { sendAction(isLeft = false, "off") })
-                  root.addView(rowPowerR)
-
-                  val rowCmdR = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowCmdR.addView(makeButton("BASSO") { sendAction(isLeft = false, "low") })
-                  rowCmdR.addView(makeButton("MEDIO") { sendAction(isLeft = false, "med") })
-                  rowCmdR.addView(makeButton("ALTO") { sendAction(isLeft = false, "high") })
-                  root.addView(rowCmdR)
-
-                  // --- INVIO HEX PERSONALIZZATO ---
-                  root.addView(makeHeader("INVIO HEX DI TEST:").apply {
-                      setPadding(0, 40, 0, 8)
+                  val rowConn = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                  rowConn.addView(makeButton("Connetti Entrambe") {
+                      connectDevice(MAC_LEFT, true)
+                      connectDevice(MAC_RIGHT, false)
                   })
-                  hexInput = EditText(this).apply {
-                      hint = "Es: AA010155"
-                      setText(commandSets[0].on)
+                  rowConn.addView(makeButton("Disconnetti") {
+                      disconnectDevice(true)
+                      disconnectDevice(false)
+                  })
+                  root.addView(rowConn)
+
+                  // --- SEZIONE TEST AUTOMATICO ---
+                  root.addView(makeHeader("TEST AUTOMATICO VALORI (BRUTE-FORCE)").apply { setPadding(0, 32, 0, 8) })
+                  
+                  currentHexView = TextView(this).apply {
+                      text = "Ultimo inviato: Nessuno"
+                      textSize = 15f
+                      setPadding(0, 8, 0, 8)
                   }
-                  root.addView(hexInput)
+                  root.addView(currentHexView)
 
-                  val rowCustom = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowCustom.addView(makeButton("Invia a L") { sendCustomHex(isLeft = true) })
-                  rowCustom.addView(makeButton("Invia a R") { sendCustomHex(isLeft = false) })
-                  rowCustom.addView(makeButton("ENTRAMBE") {
-                      sendCustomHex(isLeft = true)
-                      sendCustomHex(isLeft = false)
-                  })
-                  root.addView(rowCustom)
+                  val rowTest = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                  rowTest.addView(makeButton("AVVIA TEST L") { startBruteForce(true) })
+                  rowTest.addView(makeButton("AVVIA TEST R") { startBruteForce(false) })
+                  rowTest.addView(makeButton("AVVIA ENTRABBE") { startBruteForce(null) })
+                  root.addView(rowTest)
+
+                  val btnOk = Button(this).apply {
+                      text = "¡ FUNZIONA! (FERMA TEST)"
+                      textSize = 16f
+                      setBackgroundColor(0xFFD32F2F.toInt())
+                      setTextColor(0xFFFFFFFF.toInt())
+                      setOnClickListener { stopBruteForce() }
+                  }
+                  root.addView(btnOk)
 
                   // --- LOG ---
-                  val rowLogHeader = LinearLayout(this).apply {
-                      orientation = LinearLayout.HORIZONTAL
-                      setPadding(0, 32, 0, 8)
-                  }
-                  rowLogHeader.addView(TextView(this).apply {
-                      text = "LOG RISPOSTE (0xFFF4):"
-                      textSize = 16f
-                      layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2f)
-                  })
-                  rowLogHeader.addView(makeButton("Pulisci Log") { logView.text = "" })
-                  root.addView(rowLogHeader)
-
-                  logView = TextView(this).apply {
-                      text = "Pronto.\n"
-                      textSize = 12f
-                  }
+                  root.addView(makeHeader("LOG:").apply { setPadding(0, 32, 0, 8) })
+                  logView = TextView(this).apply { text = "Pronto.\n"; textSize = 12f }
                   root.addView(logView)
 
                   scroll.addView(root)
@@ -298,15 +255,11 @@ jobs:
               }
 
               private fun makeHeader(title: String) = TextView(this).apply {
-                  text = title
-                  textSize = 16f
-                  setPadding(0, 12, 0, 8)
+                  text = title; textSize = 16f; setPadding(0, 12, 0, 8)
               }
 
               private fun makeButton(label: String, onClick: () -> Unit) = Button(this).apply {
-                  text = label
-                  textSize = 12f
-                  gravity = Gravity.CENTER
+                  text = label; textSize = 12f; gravity = Gravity.CENTER
                   layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
                       setMargins(6, 6, 6, 6)
                   }
@@ -315,10 +268,7 @@ jobs:
 
               private fun checkPermissions() {
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                      val perms = arrayOf(
-                          Manifest.permission.BLUETOOTH_CONNECT,
-                          Manifest.permission.BLUETOOTH_SCAN
-                      )
+                      val perms = arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN)
                       if (perms.any { ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }) {
                           ActivityCompat.requestPermissions(this, perms, 100)
                       }
@@ -329,19 +279,13 @@ jobs:
               private fun connectDevice(mac: String, isLeft: Boolean) {
                   val adapter = bluetoothAdapter ?: return
                   disconnectDevice(isLeft)
+                  val device = adapter.getRemoteDevice(mac)
+                  updateStatus(isLeft, "Connessione...")
 
-                  val device = try {
-                      adapter.getRemoteDevice(mac)
-                  } catch (e: Exception) {
-                      log("MAC non valido: $mac")
-                      return
-                  }
-
-                  updateStatus(isLeft, "Connessione in corso...")
                   val callback = object : BluetoothGattCallback() {
                       override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                           if (newState == BluetoothProfile.STATE_CONNECTED) {
-                              updateStatus(isLeft, "Connessa! Ricerca servizi...")
+                              updateStatus(isLeft, "Servizi...")
                               gatt.discoverServices()
                           } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                               updateStatus(isLeft, "Disconnessa")
@@ -352,54 +296,12 @@ jobs:
 
                       override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
                           if (status == BluetoothGatt.GATT_SUCCESS) {
-                              updateStatus(isLeft, "Connessa (0xFFF0 OK)")
-                              enableNotifications(gatt)
-                          }
-                      }
-
-                      override fun onCharacteristicChanged(
-                          gatt: BluetoothGatt,
-                          characteristic: BluetoothGattCharacteristic,
-                          value: ByteArray
-                      ) {
-                          val hex = value.joinToString(" ") { "%02X".format(it) }
-                          val side = if (isLeft) "L" else "R"
-                          log("Risposta [$side]: $hex")
-                      }
-
-                      @Deprecated("Deprecated in Java")
-                      override fun onCharacteristicChanged(
-                          gatt: BluetoothGatt,
-                          characteristic: BluetoothGattCharacteristic
-                      ) {
-                          if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                              @Suppress("DEPRECATION")
-                              val hex = characteristic.value?.joinToString(" ") { "%02X".format(it) } ?: ""
-                              val side = if (isLeft) "L" else "R"
-                              log("Risposta [$side]: $hex")
+                              updateStatus(isLeft, "Pronta (Connessa)")
                           }
                       }
                   }
-
                   val gatt = device.connectGatt(this, false, callback, BluetoothDevice.TRANSPORT_LE)
                   if (isLeft) gattLeft = gatt else gattRight = gatt
-              }
-
-              @SuppressLint("MissingPermission")
-              private fun enableNotifications(gatt: BluetoothGatt) {
-                  val char = gatt.getService(SERVICE_UUID)?.getCharacteristic(NOTIFY_CHAR_UUID) ?: return
-                  gatt.setCharacteristicNotification(char, true)
-                  val desc = char.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
-                  desc?.let {
-                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                          gatt.writeDescriptor(it, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
-                      } else {
-                          @Suppress("DEPRECATION")
-                          it.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                          @Suppress("DEPRECATION")
-                          gatt.writeDescriptor(it)
-                      }
-                  }
               }
 
               @SuppressLint("MissingPermission")
@@ -411,48 +313,54 @@ jobs:
                   updateStatus(isLeft, "Disconnessa")
               }
 
-              private fun sendAction(isLeft: Boolean, action: String) {
-                  val set = commandSets[currentSetIndex]
-                  val hex = when (action) {
-                      "on" -> set.on
-                      "off" -> set.off
-                      "low" -> set.low
-                      "med" -> set.med
-                      else -> set.high
+              private fun startBruteForce(isLeftTarget: Boolean?) {
+                  if (isTesting) return
+                  isTesting = true
+                  currentPayloadIndex = 0
+                  log("--- AVVIATO TEST AUTOMATICO (${payloadList.size} combinazioni) ---")
+
+                  testRunnable = object : Runnable {
+                      override fun run() {
+                          if (!isTesting) return
+                          if (currentPayloadIndex >= payloadList.size) {
+                              log("Test completato. Nessuna risposta confermata.")
+                              isTesting = false
+                              return
+                          }
+
+                          val hex = payloadList[currentPayloadIndex]
+                          lastSentHex = hex
+                          currentHexView.text = "Test in corso [$currentPayloadIndex/${payloadList.size}]: $hex"
+
+                          if (isLeftTarget == true || isLeftTarget == null) {
+                              writeHexToGatt(gattLeft, "L", hex)
+                          }
+                          if (isLeftTarget == false || isLeftTarget == null) {
+                              writeHexToGatt(gattRight, "R", hex)
+                          }
+
+                          currentPayloadIndex++
+                          handler.postDelayed(this, 1200) // 1.2 secondi tra un comando e l'altro
+                      }
                   }
-                  writeHexToGatt(if (isLeft) gattLeft else gattRight, isLeft, hex)
+                  handler.post(testRunnable!!)
               }
 
-              private fun sendCustomHex(isLeft: Boolean) {
-                  val cleanHex = hexInput.text.toString().replace(" ", "").trim()
-                  writeHexToGatt(if (isLeft) gattLeft else gattRight, isLeft, cleanHex)
+              private fun stopBruteForce() {
+                  isTesting = false
+                  testRunnable?.let { handler.removeCallbacks(it) }
+                  currentHexView.text = "TEST FERMATO! Valore esatto bloccato: $lastSentHex"
+                  log(">>> FERMATO! Il valore attivo al momento dello stop era: $lastSentHex")
+                  Toast.makeText(this, "Valore salvato: $lastSentHex", Toast.LENGTH_LONG).show()
               }
 
               @SuppressLint("MissingPermission")
-              private fun writeHexToGatt(gatt: BluetoothGatt?, isLeft: Boolean, hexString: String) {
-                  val side = if (isLeft) "L" else "R"
-                  if (gatt == null) {
-                      log("Errore: Soletta $side non connessa")
-                      return
-                  }
-                  val bytes = hexToBytes(hexString)
-                  if (bytes == null) {
-                      log("Hex non valido: $hexString")
-                      return
-                  }
+              private fun writeHexToGatt(gatt: BluetoothGatt?, side: String, hexString: String) {
+                  if (gatt == null) return
+                  val bytes = hexToBytes(hexString) ?: return
+                  val targetChar = gatt.getService(SERVICE_UUID)?.getCharacteristic(WRITE_CHAR_UUID) ?: return
 
-                  val targetChar = gatt.getService(SERVICE_UUID)?.getCharacteristic(WRITE_CHAR_UUID)
-                  if (targetChar == null) {
-                      log("Caratteristica 0xFFF3 non trovata su $side")
-                      return
-                  }
-
-                  val writeType = if ((targetChar.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
-                      BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-                  } else {
-                      BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                  }
-
+                  val writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                       gatt.writeCharacteristic(targetChar, bytes, writeType)
                   } else {
@@ -463,34 +371,28 @@ jobs:
                       @Suppress("DEPRECATION")
                       gatt.writeCharacteristic(targetChar)
                   }
-                  log("Inviato [$side -> 0xFFF3]: $hexString")
               }
 
               private fun hexToBytes(hex: String): ByteArray? {
                   if (hex.isEmpty() || hex.length % 2 != 0) return null
                   return try {
-                      ByteArray(hex.length / 2) { i ->
-                          hex.substring(i * 2, i * 2 + 2).toInt(16).toByte()
-                      }
-                  } catch (e: Exception) {
-                      null
-                  }
+                      ByteArray(hex.length / 2) { i -> hex.substring(i * 2, i * 2 + 2).toInt(16).toByte() }
+                  } catch (e: Exception) { null }
               }
 
               private fun updateStatus(isLeft: Boolean, text: String) {
                   runOnUiThread {
-                      if (isLeft) statusLeft.text = "Stato: $text" else statusRight.text = "Stato: $text"
+                      if (isLeft) statusLeft.text = "Soletta L: $text" else statusRight.text = "Soletta R: $text"
                   }
               }
 
               private fun log(msg: String) {
-                  runOnUiThread {
-                      logView.append("$msg\n")
-                  }
+                  runOnUiThread { logView.append("$msg\n") }
               }
 
               override fun onDestroy() {
                   super.onDestroy()
+                  stopBruteForce()
                   disconnectDevice(true)
                   disconnectDevice(false)
               }
