@@ -60,8 +60,8 @@ jobs:
                   applicationId = "com.imran.solettelr"
                   minSdk = 26
                   targetSdk = 34
-                  versionCode = 2
-                  versionName = "1.1"
+                  versionCode = 3
+                  versionName = "1.2"
               }
 
               buildTypes {
@@ -138,16 +138,15 @@ jobs:
                   const val MAC_LEFT = "FF:FF:11:B0:E1:57"
                   const val MAC_RIGHT = "FF:FF:11:B0:E5:5D"
 
-                  val SERVICE_UUID: UUID = UUID.fromString("5833ff01-9b8b-5191-6142-22a4536ef123")
-                  val WRITE_CHAR_UUID: UUID = UUID.fromString("5833ff02-9b8b-5191-6142-22a4536ef123")
-                  val NOTIFY_CHAR_UUID: UUID = UUID.fromString("5833ff03-9b8b-5191-6142-22a4536ef123")
-
-                  val ALT_SERVICE_UUID: UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb")
-                  val ALT_WRITE_UUID: UUID = UUID.fromString("0000fff3-0000-1000-8000-00805f9b34fb")
+                  // Servizio dati reale 0xFFF0 (esclude 5833ff01 che è il canale OTA)
+                  val SERVICE_UUID: UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb")
+                  val WRITE_CHAR_UUID: UUID = UUID.fromString("0000fff3-0000-1000-8000-00805f9b34fb")
+                  val NOTIFY_CHAR_UUID: UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb")
               }
 
               data class CommandSet(
                   val name: String,
+                  val on: String,
                   val off: String,
                   val low: String,
                   val med: String,
@@ -155,12 +154,12 @@ jobs:
               )
 
               private val commandSets = listOf(
-                  CommandSet("Set 1: Xinkesi Checksum (AA 02 01..55)", "AA0201000355", "AA0201010455", "AA0201020555", "AA0201030655"),
-                  CommandSet("Set 2: Xinkesi 55 AA (55 AA 01..)", "55AA0100", "55AA0101", "55AA0102", "55AA0103"),
-                  CommandSet("Set 3: Xinkesi AA 55 (AA 55 01..)", "AA550100", "AA550101", "AA550102", "AA550103"),
-                  CommandSet("Set 4: Temp °C (0 / 40° / 50° / 60°)", "AA0202000455", "AA0202282C55", "AA0202323655", "AA02023C4055"),
-                  CommandSet("Set 5: Frame Breve (A1 01..)", "A10100", "A10101", "A10102", "A10103"),
-                  CommandSet("Set 6: Frame 5-Byte (55 AA 03 01..)", "55AA030100", "55AA030101", "55AA030102", "55AA030103")
+                  CommandSet("Set 1: Standard (AA 01..55)", "AA010155", "AA010055", "AA010155", "AA010255", "AA010355"),
+                  CommandSet("Set 2: Checksum (AA 02 01..55)", "AA0201010455", "AA0201000355", "AA0201010455", "AA0201020555", "AA0201030655"),
+                  CommandSet("Set 3: Header 55 AA (55 AA 01..)", "55AA0101", "55AA0100", "55AA0101", "55AA0102", "55AA0103"),
+                  CommandSet("Set 4: Temp °C (40° / 50° / 60°)", "AA0201010455", "AA0202000455", "AA0202282C55", "AA0202323655", "AA02023C4055"),
+                  CommandSet("Set 5: 5-Byte (55 AA 03 01..)", "55AA030101", "55AA030100", "55AA030101", "55AA030102", "55AA030103"),
+                  CommandSet("Set 6: Breve (A1 01..)", "A10101", "A10100", "A10101", "A10102", "A10103")
               )
 
               private var currentSetIndex = 0
@@ -191,7 +190,7 @@ jobs:
                   }
 
                   // --- SELETTORE SET COMANDI ---
-                  root.addView(makeHeader("PROTOCOLLO COMANDI:"))
+                  root.addView(makeHeader("PROTOCOLLO COMANDI (su 0xFFF3):"))
                   val spinner = Spinner(this).apply {
                       adapter = ArrayAdapter(
                           this@MainActivity,
@@ -202,7 +201,7 @@ jobs:
                           override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                               currentSetIndex = position
                               val set = commandSets[position]
-                              hexInput.setText(set.high)
+                              hexInput.setText(set.on)
                               log("Selezionato -> ${set.name}")
                           }
                           override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -222,11 +221,15 @@ jobs:
                   rowConnL.addView(makeButton("Disconnetti L") { disconnectDevice(isLeft = true) })
                   root.addView(rowConnL)
 
+                  val rowPowerL = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                  rowPowerL.addView(makeButton("ON") { sendAction(isLeft = true, "on") })
+                  rowPowerL.addView(makeButton("OFF") { sendAction(isLeft = true, "off") })
+                  root.addView(rowPowerL)
+
                   val rowCmdL = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowCmdL.addView(makeButton("OFF") { sendLevel(isLeft = true, 0) })
-                  rowCmdL.addView(makeButton("BASSO") { sendLevel(isLeft = true, 1) })
-                  rowCmdL.addView(makeButton("MEDIO") { sendLevel(isLeft = true, 2) })
-                  rowCmdL.addView(makeButton("ALTO") { sendLevel(isLeft = true, 3) })
+                  rowCmdL.addView(makeButton("BASSO") { sendAction(isLeft = true, "low") })
+                  rowCmdL.addView(makeButton("MEDIO") { sendAction(isLeft = true, "med") })
+                  rowCmdL.addView(makeButton("ALTO") { sendAction(isLeft = true, "high") })
                   root.addView(rowCmdL)
 
                   // --- SOLETTA DESTRA (R) ---
@@ -241,11 +244,15 @@ jobs:
                   rowConnR.addView(makeButton("Disconnetti R") { disconnectDevice(isLeft = false) })
                   root.addView(rowConnR)
 
+                  val rowPowerR = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+                  rowPowerR.addView(makeButton("ON") { sendAction(isLeft = false, "on") })
+                  rowPowerR.addView(makeButton("OFF") { sendAction(isLeft = false, "off") })
+                  root.addView(rowPowerR)
+
                   val rowCmdR = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-                  rowCmdR.addView(makeButton("OFF") { sendLevel(isLeft = false, 0) })
-                  rowCmdR.addView(makeButton("BASSO") { sendLevel(isLeft = false, 1) })
-                  rowCmdR.addView(makeButton("MEDIO") { sendLevel(isLeft = false, 2) })
-                  rowCmdR.addView(makeButton("ALTO") { sendLevel(isLeft = false, 3) })
+                  rowCmdR.addView(makeButton("BASSO") { sendAction(isLeft = false, "low") })
+                  rowCmdR.addView(makeButton("MEDIO") { sendAction(isLeft = false, "med") })
+                  rowCmdR.addView(makeButton("ALTO") { sendAction(isLeft = false, "high") })
                   root.addView(rowCmdR)
 
                   // --- INVIO HEX PERSONALIZZATO ---
@@ -253,8 +260,8 @@ jobs:
                       setPadding(0, 40, 0, 8)
                   })
                   hexInput = EditText(this).apply {
-                      hint = "Es: AA0201030655"
-                      setText(commandSets[0].high)
+                      hint = "Es: AA010155"
+                      setText(commandSets[0].on)
                   }
                   root.addView(hexInput)
 
@@ -273,7 +280,7 @@ jobs:
                       setPadding(0, 32, 0, 8)
                   }
                   rowLogHeader.addView(TextView(this).apply {
-                      text = "LOG RISPOSTE BATTERIA:"
+                      text = "LOG RISPOSTE (0xFFF4):"
                       textSize = 16f
                       layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2f)
                   })
@@ -345,7 +352,7 @@ jobs:
 
                       override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
                           if (status == BluetoothGatt.GATT_SUCCESS) {
-                              updateStatus(isLeft, "Connessa (GATT OK)")
+                              updateStatus(isLeft, "Connessa (0xFFF0 OK)")
                               enableNotifications(gatt)
                           }
                       }
@@ -404,12 +411,13 @@ jobs:
                   updateStatus(isLeft, "Disconnessa")
               }
 
-              private fun sendLevel(isLeft: Boolean, level: Int) {
+              private fun sendAction(isLeft: Boolean, action: String) {
                   val set = commandSets[currentSetIndex]
-                  val hex = when (level) {
-                      0 -> set.off
-                      1 -> set.low
-                      2 -> set.med
+                  val hex = when (action) {
+                      "on" -> set.on
+                      "off" -> set.off
+                      "low" -> set.low
+                      "med" -> set.med
                       else -> set.high
                   }
                   writeHexToGatt(if (isLeft) gattLeft else gattRight, isLeft, hex)
@@ -434,22 +442,28 @@ jobs:
                   }
 
                   val targetChar = gatt.getService(SERVICE_UUID)?.getCharacteristic(WRITE_CHAR_UUID)
-                      ?: gatt.getService(ALT_SERVICE_UUID)?.getCharacteristic(ALT_WRITE_UUID)
-
                   if (targetChar == null) {
-                      log("Caratteristica WRITE non trovata su $side")
+                      log("Caratteristica 0xFFF3 non trovata su $side")
                       return
                   }
 
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                      gatt.writeCharacteristic(targetChar, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+                  val writeType = if ((targetChar.properties and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0) {
+                      BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
                   } else {
+                      BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                  }
+
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                      gatt.writeCharacteristic(targetChar, bytes, writeType)
+                  } else {
+                      @Suppress("DEPRECATION")
+                      targetChar.writeType = writeType
                       @Suppress("DEPRECATION")
                       targetChar.value = bytes
                       @Suppress("DEPRECATION")
                       gatt.writeCharacteristic(targetChar)
                   }
-                  log("Inviato a [$side]: $hexString")
+                  log("Inviato [$side -> 0xFFF3]: $hexString")
               }
 
               private fun hexToBytes(hex: String): ByteArray? {
